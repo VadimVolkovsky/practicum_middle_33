@@ -1,0 +1,42 @@
+version: '3.4'
+services:
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    restart: always
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - API_REDIS_HOST=redis
+    ports:
+      - 8000:8000
+#    command: python src/main.py
+    command: uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:latest
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - 6380:6379
+
+  elasticsearch:
+    image: elasticsearch:8.13.0
+#    volumes:
+#      - ../data/elasticsearch:/data/elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms200m -Xmx200m
+    ports:
+      - "9200:9200"
