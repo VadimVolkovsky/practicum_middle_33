@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 from schemas.es_schemas import elastic_film_index_schema
 import core.config as config
 
+
 OBJECT_QTY = 100
 RATING_MIN = 1
 RATING_MAX = 10
@@ -19,7 +20,6 @@ ROLES = {
     'actors': 'actor',
     'writers': 'writer'
 }
-
 
 logger = logging.getLogger(os.path.basename(__file__))
 logger.setLevel(logging.INFO)
@@ -133,7 +133,7 @@ class FakeDataGenerator:
         """Загрузка сгенерированных данных в эластик"""
         bulk_data = []
         logger.info('Preparing data for load...')
-        for item in self.items[:5]:
+        for item in self.items:
             bulk_data.append({
                 '_op_type': 'index',
                 '_index': self.es_index_name,
