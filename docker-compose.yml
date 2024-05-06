@@ -2,6 +2,7 @@ version: '3.4'
 services:
 
   api:
+    image: async_api_image
     build:
       context: .
       dockerfile: docker/Dockerfile

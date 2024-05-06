@@ -10,6 +10,7 @@ ENV PYTHONUNBUFFERED 1
 RUN  pip install --upgrade pip \
      && pip install -r /app/requirements.txt
 
+COPY .flake8 /app/
 COPY  src /app/src
 
 WORKDIR /app
