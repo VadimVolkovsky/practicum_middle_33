@@ -21,6 +21,10 @@ class Film(BaseModel):
     title: str
 
 
+class FilmList(BaseModel):
+    pass
+
+
 @router.get('/{film_id}', response_model=Film)
 async def film_details(film_id: str, film_service: FilmService = Depends(get_film_service)) -> Film:
     film = await film_service.get_by_id(film_id)
@@ -32,18 +36,16 @@ async def film_details(film_id: str, film_service: FilmService = Depends(get_fil
 
 
 @router.get('', response_model=list[FilmList])
-async def read_books(page_number: int = Query(1, gt=0),
-                     page_size: int = Query(10, gt=0),
+async def film_list(page_number: int = Query(1, gt=0),
+                     page_size: int = Query(100, gt=0),
                      sort: Optional[str] = None,
                      genre: Optional[str] = None,
                      film_service: FilmService = Depends(get_film_service)):
     # Применяем пагинацию
     start_index = (page_number - 1) * page_size
-    end_index = start_index + page_size
+    # end_index = start_index + page_size
 
-    # paginated_list = books_db[start_index:end_index]
-
-    film_list = await film_service.get_list_film()
+    film_list = await film_service.get_list_film(start_index, page_size)
 
     # Применяем сортировку, если указана
     if sort and sort == 'imdb_rating':

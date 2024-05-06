@@ -14,7 +14,7 @@ import core.config as config
 OBJECT_QTY = 100
 RATING_MIN = 1
 RATING_MAX = 10
-NUMBER_OF_DECIMALS = 1  # кол-во цифр после запятой в рейтинге фильма
+NUMBER_OF_DECIMALS = 1
 ROLES = {
     'directors': 'director',
     'actors': 'actor',
@@ -47,6 +47,7 @@ class FilmWorkSchema(BaseModel):
     def _filter_persons(self, role: str):
         if self.persons is not None:
             return [person for person in self.persons if person.role == role]
+
         return []
 
     def _get_persons_info(self, role: str):
@@ -58,8 +59,10 @@ class FilmWorkSchema(BaseModel):
     def dict(self, **kwargs):
         """Трансформирует pydantic объекты в словарь, с распределением персоналий по ключам."""
         obj_dict = super().dict(**kwargs)
+
         for role_key, role_value in ROLES.items():
             obj_dict[role_key] = self._get_persons_info(role_value)
+
         return obj_dict
 
 
@@ -78,6 +81,7 @@ class FakeDataGenerator:
     def exec(self):
         """Запуск процесса генерации и загрузки данных"""
         self._create_elastic_index()
+
         if self.es_index_name == 'movies':
             self._generate_persons()
             self._generate_genres()
@@ -86,11 +90,13 @@ class FakeDataGenerator:
             pass
         elif self.es_index_name == 'persons':
             pass
+
         self._load_data_to_elastic()
 
     def _create_elastic_index(self):
         """Создает индекс в эластике если он еще не создан"""
         logger.info(f'Check if index "{self.es_index_name}" exists...')
+
         if not self.elastic.indices.exists(index=self.es_index_name):
             self.elastic.indices.create(
                 index=self.es_index_name,
@@ -103,6 +109,7 @@ class FakeDataGenerator:
     def _generate_persons(self):
         """Генерация персоналий"""
         logger.info('Generating persons...')
+
         self.persons = [
             PersonSchema(
                 id=self.fake.uuid4(),
@@ -114,12 +121,14 @@ class FakeDataGenerator:
     def _generate_genres(self):
         """Генерация жанров"""
         logger.info('Generating genres...')
+
         genres = ['Action', 'Western', 'Detective', 'Drama', 'Comedy', 'Melodrama', ]
         self.genres = [GenreSchema(id=self.fake.uuid4(), name=name) for name in genres]
 
     def _generate_films(self):
         """Генерация фильмов"""
         logger.info('Generating films...')
+
         self.items = [FilmWorkSchema(
             id=self.fake.uuid4(),
             imdb_rating=round(random.uniform(RATING_MIN, RATING_MAX), NUMBER_OF_DECIMALS),
@@ -132,7 +141,9 @@ class FakeDataGenerator:
     def _load_data_to_elastic(self):
         """Загрузка сгенерированных данных в эластик"""
         bulk_data = []
+
         logger.info('Preparing data for load...')
+
         for item in self.items:
             bulk_data.append({
                 '_op_type': 'index',
@@ -140,7 +151,9 @@ class FakeDataGenerator:
                 '_id': item.id,
                 '_source': item.dict()
             })
+
         helpers.bulk(self.elastic, bulk_data)
+
         logger.info(f'{len(bulk_data)} objects were successfully loaded to index "{es_index_name}" ')
 
 

@@ -7,7 +7,7 @@ from redis.asyncio import Redis
 
 from db.elastic import get_elastic
 from db.redis import get_redis
-from models.film import Film
+from models.film import Film, FilmList
 
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
 
@@ -35,39 +35,61 @@ class FilmService:
         return film
 
 
-    async def get_list_film(self) -> Optional[list[Film]]:
-        list_film = await self._list_film_from_cache()
+    async def get_list_film(self, start_index: int, end_index: int) -> Optional[list[FilmList]]:
+        # film_list = await self._list_film_from_cache()
+        film_list = None
 
-        if not list_film:
-            list_film = await self._get_list_film_from_elastic(film_id)
+        if not film_list:
+            film_list = await self._get_list_film_from_elastic(start_index, end_index)
 
-            if not list_film:
+            if not film_list:
                 return None
 
             # await self._put_film_to_cache(list_film)
-        return list_film
+        return film_list
 
 
-    async def _get_list_film_from_elastic(self) -> Optional[list[Film]]:
+    async def _get_list_film_from_elastic(self, start_index: int, size: int) -> Optional[list[FilmList]]:
+        body = {
+            # "query":
+            #     {
+            #         "match_all": {}
+            #     }
+            "query": {
+                "match_all": {
+                    # "name": "колбаса"
+                },
+            },
+            "size": size,
+            "from": start_index
+            # "sort": [
+            #     {
+            #         "age": {
+            #             "order": "desc"
+            #         }
+            #     },
+            # ]
+        }
+
         try:
             search = await self.elastic.search(index='movies', body=body)
         except NotFoundError:
             return None
 
-        list_film = [ListFilm(**hit) for hit in search['hits']['hits']]
+        list_film = [FilmList(**hit) for hit in search['hits']['hits']]
 
         return list_film
 
 
-    def query_index(index, query, page, per_page):
-        if not current_app.elasticsearch:
-            return [], 0
-        search = current_app.elasticsearch.search(
-            index=index, doc_type=index,
-            body={'query': {'multi_match': {'query': query, 'fields': ['*']}},
-                  'from': (page - 1) * per_page, 'size': per_page})
-        ids = [int(hit['_id']) for hit in search['hits']['hits']]
-        return ids, search['hits']['total']
+    # def query_index(index, query, page, per_page):
+    #     if not current_app.elasticsearch:
+    #         return [], 0
+    #     search = current_app.elasticsearch.search(
+    #         index=index, doc_type=index,
+    #         body={'query': {'multi_match': {'query': query, 'fields': ['*']}},
+    #               'from': (page - 1) * per_page, 'size': per_page})
+    #     ids = [int(hit['_id']) for hit in search['hits']['hits']]
+    #     return ids, search['hits']['total']
 
 
     async def _get_film_from_elastic(self, film_id: str) -> Optional[Film]:
