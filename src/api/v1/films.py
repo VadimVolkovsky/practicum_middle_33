@@ -4,7 +4,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
-from src.services.film import FilmService, get_film_service
+from services.film import FilmService, get_film_service
 
 # Объект router, в котором регистрируем обработчики
 router = APIRouter()
@@ -13,6 +13,7 @@ router = APIRouter()
 # https://pydantic-docs.helpmanual.io
 # У неё есть встроенные механизмы валидации, сериализации и десериализации
 # Также она основана на дата-классах
+
 
 # Модель ответа API
 class Film(BaseModel):
