@@ -22,30 +22,67 @@ class FilmService:
 
     # get_by_id возвращает объект фильма. Он опционален, так как фильм может отсутствовать в базе
     async def get_by_id(self, film_id: str) -> Optional[Film]:
-        # Пытаемся получить данные из кеша, потому что оно работает быстрее
         film = await self._film_from_cache(film_id)
+
         if not film:
-            # Если фильма нет в кеше, то ищем его в Elasticsearch
             film = await self._get_film_from_elastic(film_id)
+
             if not film:
-                # Если он отсутствует в Elasticsearch, значит, фильма вообще нет в базе
                 return None
-            # Сохраняем фильм  в кеш
+
             await self._put_film_to_cache(film)
 
         return film
+
+
+    async def get_list_film(self) -> Optional[list[Film]]:
+        list_film = await self._list_film_from_cache()
+
+        if not list_film:
+            list_film = await self._get_list_film_from_elastic(film_id)
+
+            if not list_film:
+                return None
+
+            # await self._put_film_to_cache(list_film)
+        return list_film
+
+
+    async def _get_list_film_from_elastic(self) -> Optional[list[Film]]:
+        try:
+            search = await self.elastic.search(index='movies', body=body)
+        except NotFoundError:
+            return None
+
+        list_film = [ListFilm(**hit) for hit in search['hits']['hits']]
+
+        return list_film
+
+
+    def query_index(index, query, page, per_page):
+        if not current_app.elasticsearch:
+            return [], 0
+        search = current_app.elasticsearch.search(
+            index=index, doc_type=index,
+            body={'query': {'multi_match': {'query': query, 'fields': ['*']}},
+                  'from': (page - 1) * per_page, 'size': per_page})
+        ids = [int(hit['_id']) for hit in search['hits']['hits']]
+        return ids, search['hits']['total']
+
 
     async def _get_film_from_elastic(self, film_id: str) -> Optional[Film]:
         try:
             doc = await self.elastic.get(index='movies', id=film_id)
         except NotFoundError:
             return None
+
         return Film(**doc['_source'])
 
     async def _film_from_cache(self, film_id: str) -> Optional[Film]:
         # Пытаемся получить данные о фильме из кеша, используя команду get
         # https://redis.io/commands/get/
         data = await self.redis.get(film_id)
+
         if not data:
             return None
 
@@ -59,8 +96,6 @@ class FilmService:
         # https://redis.io/commands/set/
         # pydantic позволяет сериализовать модель в json
         await self.redis.set(film.id, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS)
-
-
 
 
 # get_film_service — это провайдер FilmService.
