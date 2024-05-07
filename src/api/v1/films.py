@@ -77,22 +77,3 @@ async def film_list(page_number: int = Query(1, gt=0),
 
     # return FilmListSerializer(*film_list)
     return film_list
-
-
-# @router.get('/search', response_model=list[FilmListSerializer])
-# async def search(query: str,
-#                  page_number: int = Query(1, gt=0),
-#                  page_size: int = Query(100, gt=0),
-#                  sort: Optional[str] = None,
-#                  film_service: FilmService = Depends(get_film_service)) -> list[FilmListSerializer]:
-#     start_index = (page_number - 1) * page_size
-#
-#     film_list = await film_service.get_list_film(start_index, page_size, sort=sort, query=query)
-#
-#     if not film_list:
-#         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='films not found')
-#
-#     # return FilmListSerializer(*film_list)
-#     return film_list
-
-
