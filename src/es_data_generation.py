@@ -78,14 +78,9 @@ class FakeDataGenerator:
     def exec(self):
         """Запуск процесса генерации и загрузки данных"""
         self._create_elastic_index()
-        if self.es_index_name == 'movies':
-            self._generate_persons()
-            self._generate_genres()
-            self._generate_films()
-        elif self.es_index_name == 'genres':
-            pass
-        elif self.es_index_name == 'persons':
-            pass
+        self._generate_persons()
+        self._generate_genres()
+        self._generate_films()
         self._load_data_to_elastic()
 
     def _create_elastic_index(self):
@@ -145,13 +140,6 @@ class FakeDataGenerator:
 
 
 if __name__ == '__main__':
-    indexes = {
-        'movies': elastic_film_index_schema,
-    }
-
-    for es_index_name, es_index_schema in indexes.items():
-        fake_data_generator = FakeDataGenerator(es_index_name, es_index_schema)
-        fake_data_generator.exec()
-
-
-# TODO индексы жанров и персон
+    es_index_name = 'movies'
+    fake_data_generator = FakeDataGenerator(es_index_name, elastic_film_index_schema)
+    fake_data_generator.exec()
