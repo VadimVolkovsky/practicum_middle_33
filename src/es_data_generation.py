@@ -1,13 +1,15 @@
 import logging
 import os
+from time import sleep
 
+from elasticsearch.helpers import scan
 from faker import Faker
 from elasticsearch import Elasticsearch, helpers
 import random
 
 from pydantic import BaseModel, Field
 
-from schemas.es_schemas import elastic_film_index_schema
+from schemas.es_schemas import elastic_film_index_schema, elastic_genre_index_schema
 import core.config as config
 
 
@@ -63,11 +65,11 @@ class FilmWorkSchema(BaseModel):
         return obj_dict
 
 
-class FakeDataGenerator:
-    """Класс для генерации и загрузки фейковых данных в ElasticSearch"""
+class ElasticDataGenerator:
+    """Класс для генерации и загрузки данных в ElasticSearch"""
     persons: list[PersonSchema] = None
     genres: list[GenreSchema] = None
-    items: list[FilmWorkSchema] = None
+    items: list[FilmWorkSchema | GenreSchema] = None
 
     def __init__(self, es_index_name: str, es_index_schema: dict):
         self.es_index_name = es_index_name
@@ -78,9 +80,12 @@ class FakeDataGenerator:
     def exec(self):
         """Запуск процесса генерации и загрузки данных"""
         self._create_elastic_index()
-        self._generate_persons()
-        self._generate_genres()
-        self._generate_films()
+        if self.es_index_name == 'movies':
+            self._generate_persons()
+            self._generate_genres()
+            self._generate_films()
+        elif self.es_index_name == 'genres':
+            self._get_genres_from_movies()
         self._load_data_to_elastic()
 
     def _create_elastic_index(self):
@@ -124,10 +129,20 @@ class FakeDataGenerator:
             description=self.fake.text(),
         ) for _ in range(OBJECT_QTY)]
 
+    def _get_genres_from_movies(self):
+        """Получает список из всех жанров, которые есть в добавленных фильмах"""
+        self.items = []
+        film_data = scan(self.elastic, index='movies', query={"query": {"match_all": {}}})
+        for film in film_data:
+            for genre in film['_source']['genre']:
+                genre_obj = GenreSchema(**genre)
+                if genre_obj not in self.items:
+                    self.items.append(genre_obj)
+
     def _load_data_to_elastic(self):
-        """Загрузка сгенерированных данных в эластик"""
+        """Загрузка данных в эластик"""
         bulk_data = []
-        logger.info('Preparing data for load...')
+        logger.info(f'Preparing data for load to index "{self.es_index_name}"...')
         for item in self.items:
             bulk_data.append({
                 '_op_type': 'index',
@@ -136,10 +151,15 @@ class FakeDataGenerator:
                 '_source': item.dict()
             })
         helpers.bulk(self.elastic, bulk_data)
-        logger.info(f'{len(bulk_data)} objects were successfully loaded to index "{es_index_name}" ')
+        sleep(5)  # чтобы данные успели полностью загрузиться в эластик, и их можно было получать
+        logger.info(f'{len(bulk_data)} objects were successfully loaded to index "{self.es_index_name}" ')
 
 
 if __name__ == '__main__':
-    es_index_name = 'movies'
-    fake_data_generator = FakeDataGenerator(es_index_name, elastic_film_index_schema)
-    fake_data_generator.exec()
+    indexes = {
+        'movies': elastic_film_index_schema,
+        'genres': elastic_genre_index_schema,
+    }
+    for index_name, index_schema in indexes.items():
+        fake_data_generator = ElasticDataGenerator(index_name, index_schema)
+        fake_data_generator.exec()
