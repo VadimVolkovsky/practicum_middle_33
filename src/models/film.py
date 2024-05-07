@@ -5,8 +5,8 @@ from typing import Optional
 import orjson
 from pydantic import BaseModel
 
-from src.models.genre import Genre
-from src.models.person import Person
+from models.genre import Genre
+from models.person import Person
 
 
 def orjson_dumps(v, *, default):
