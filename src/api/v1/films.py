@@ -45,7 +45,7 @@ async def film_list(page_number: int = Query(1, gt=0),
     start_index = (page_number - 1) * page_size
     # end_index = start_index + page_size
 
-    film_list = await film_service.get_list_film(start_index, page_size)
+    film_list = await film_service.get_list_film(start_index, page_size, sort, genre)
 
     # Применяем сортировку, если указана
     if sort and sort == 'imdb_rating':

@@ -35,12 +35,12 @@ class FilmService:
         return film
 
 
-    async def get_list_film(self, start_index: int, end_index: int) -> Optional[list[FilmList]]:
+    async def get_list_film(self, start_index: int, end_index: int, sort: [str | None] = None, genre: [str | None] = None) -> Optional[list[FilmList]]:
         # film_list = await self._list_film_from_cache()
         film_list = None
 
         if not film_list:
-            film_list = await self._get_list_film_from_elastic(start_index, end_index)
+            film_list = await self._get_list_film_from_elastic(start_index, end_index, sort, genre)
 
             if not film_list:
                 return None
@@ -49,19 +49,22 @@ class FilmService:
         return film_list
 
 
-    async def _get_list_film_from_elastic(self, start_index: int, size: int) -> Optional[list[FilmList]]:
+    async def _get_list_film_from_elastic(self, start_index: int, page_size: int, sort: [str | None] = None, genre: [str | None] = None) -> Optional[list[Film]]:
         body = {
             # "query":
             #     {
             #         "match_all": {}
             #     }
-            "query": {
-                "match_all": {
-                    # "name": "колбаса"
-                },
-            },
-            "size": size,
-            "from": start_index
+            # "query": {
+            #     "match": {
+            #         # "name": "колбаса"
+            #     },
+            # },
+            "size": page_size,
+            "from": start_index,
+            # "filter": [
+            #     {"term": {"genre": genre}},
+            # ]
             # "sort": [
             #     {
             #         "age": {
@@ -71,12 +74,22 @@ class FilmService:
             # ]
         }
 
+        if genre:
+            body["filter"] = ({"term": {"genre": genre}})
+
+        if sort:
+            if sort.startswith('-'):
+                sort = sort.replace('-', '')
+                body["sort"] = [{sort: {"order": "desc"}}]
+            else:
+                body["sort"] = [{sort: {"order": "asc"}}]
+
         try:
             search = await self.elastic.search(index='movies', body=body)
         except NotFoundError:
             return None
 
-        list_film = [FilmList(**hit) for hit in search['hits']['hits']]
+        list_film = [Film(**hit) for hit in search['hits']['hits']]
 
         return list_film
 
