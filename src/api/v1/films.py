@@ -38,7 +38,7 @@ async def film_search(query: str,
                       page_number: int = Query(1, gt=0),
                       page_size: int = Query(100, gt=0),
                       sort: Optional[str] = None,
-                      film_service: FilmService = Depends(get_film_service)) -> FilmListSerializer:
+                      film_service: FilmService = Depends(get_film_service)) -> list[FilmListSerializer]:
     start_index = (page_number - 1) * page_size
 
     film_list = await film_service.get_list_film(start_index, page_size, sort=sort, query=query)
@@ -46,8 +46,8 @@ async def film_search(query: str,
     if not film_list:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='films not found')
 
-    # return FilmListSerializer(*film_list)
-    return film_list
+    return [FilmListSerializer(**dict(film)) for film in film_list]
+    # return film_list
 
 
 @router.get('/{film_id}', response_model=FilmSerializer)
@@ -57,7 +57,7 @@ async def film_details(film_id: str, film_service: FilmService = Depends(get_fil
     if not film:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='film not found')
 
-    return FilmSerializer(id=film.id, title=film.title)
+    return FilmSerializer(**dict(film))
 
 
 @router.get('', response_model=list[FilmListSerializer])
@@ -65,7 +65,7 @@ async def film_list(page_number: int = Query(1, gt=0),
                     page_size: int = Query(100, gt=0),
                     sort: Optional[str] = None,
                     genre: Optional[str] = None,
-                    film_service: FilmService = Depends(get_film_service)) -> FilmListSerializer:
+                    film_service: FilmService = Depends(get_film_service)) -> list[FilmListSerializer]:
     # Применяем пагинацию
     start_index = (page_number - 1) * page_size
     # end_index = start_index + page_size
@@ -75,5 +75,5 @@ async def film_list(page_number: int = Query(1, gt=0),
     if not film_list:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='films not found')
 
-    # return FilmListSerializer(*film_list)
-    return film_list
+    return [FilmListSerializer(**dict(film)) for film in film_list]
+    # return film_list
