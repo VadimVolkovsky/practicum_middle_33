@@ -8,3 +8,5 @@ uvloop==0.17.0 ; sys_platform != "wipipn32" and implementation_name == "cpython"
 flake8-print==5.0.0
 flake8-string-format==0.3.0
 flake8==7.0.0
+isort==5.13.2
+Faker~=25.0.1

@@ -23,6 +23,11 @@ make up
 make flake8
 ```
 
+Заливка тестовых данных в ElasticSearch
+```
+python src/es_data_generation.py
+```
+
 ### Авторы
 ...
 
