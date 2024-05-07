@@ -10,7 +10,6 @@ from api.v1 import films
 from core import config
 from core.logger import LOGGING
 from db import redis, elastic
-from services.film import get_film_service
 
 app = FastAPI(
     title=config.PROJECT_NAME,
