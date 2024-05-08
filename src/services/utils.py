@@ -1,5 +1,7 @@
 from typing import Optional
 
+from db.elastic import Indexes
+
 
 async def _get_query_body(start_index: int,
                           page_size: int,
@@ -50,3 +52,12 @@ async def _get_query_body(start_index: int,
         }
 
     return body
+
+
+async def validation_index_model_fiield(sort_field: Optional[str]) -> None:
+    index_model = Indexes.movies.value.get('index_model', None)
+
+    if index_model and sort_field and sort_field not in index_model.__fields__.keys():
+        return None
+
+    return sort_field

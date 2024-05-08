@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
 from services.film import FilmService, get_film_service
-
+from services.utils import validation_index_model_fiield
 
 router = APIRouter()
 
@@ -44,6 +44,7 @@ async def film_search(query: str,
     :param sort: поле, по которому ссортируется список'''
 
     start_index = (page_number - 1) * page_size
+    sort = await validation_index_model_fiield(sort)
 
     film_list = await film_service.get_list_film(start_index, page_size, sort=sort, query=query)
 
@@ -78,7 +79,9 @@ async def film_list(page_number: int = Query(1, gt=0),
     :param sort: поле, по которому ссортируется список
     :param genre: жанр, по которому фильтруется список фильмов'''
 
+    sort = await validation_index_model_fiield(sort)
     start_index = (page_number - 1) * page_size
+
     film_list = await film_service.get_list_film(start_index, page_size, sort, genre)
 
     if not film_list:
