@@ -10,19 +10,18 @@ from db.redis import get_redis
 from models.film import Film
 from services.utils import _get_query_body
 
+
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
 
 
-# FilmService содержит бизнес-логику по работе с фильмами.
-# Никакой магии тут нет. Обычный класс с обычными методами.
-# Этот класс ничего не знает про DI — максимально сильный и независимый.
 class FilmService:
     def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
         self.redis = redis
         self.elastic = elastic
 
-    # get_by_id возвращает объект фильма. Он опционален, так как фильм может отсутствовать в базе
     async def get_by_id(self, film_id: str) -> Optional[Film]:
+        '''функция для получения экземпляра фильма по id. Возвращает None если фильм отсутствует в базе данных'''
+
         film = await self._film_from_cache(film_id)
 
         if not film:
@@ -38,9 +37,12 @@ class FilmService:
     async def get_list_film(self,
                             start_index: int,
                             end_index: int,
-                            sort: [str | None] = None,
-                            genre: [str | None] = None,
-                            query: [str | None] = None) -> Optional[list[Film]]:
+                            sort: str = None,
+                            genre: str = None,
+                            query: str = None) -> Optional[list[Film]]:
+        '''Функция для получения списка фильмов, используя параметры фильтрации и сортировки.
+        Сначала поиск ведется в кэше, если в кэше нет нужных данных - поиск ведется в ES
+        Возвращает None, если в базе нет фильмов с указанными парамметрами поиска'''
 
         # film_list = await self._list_film_from_cache()
         film_list = None
@@ -60,6 +62,8 @@ class FilmService:
                                           sort: Optional[str] = None,
                                           genre: Optional[str] = None,
                                           query: Optional[str] = None) -> Optional[list[Film]]:
+        '''Функция для получения списка фильмов, используя параметры фильтрации и сортировки из ES.
+        Возвращает список фильмов, если они есть в ES, если нет - None'''
 
         query_body = await _get_query_body(start_index, page_size, sort, genre, query)
 
@@ -75,6 +79,9 @@ class FilmService:
         return list_film
 
     async def _get_film_from_elastic(self, film_id: str) -> Optional[Film]:
+        '''Функция для получения экземпляра фильма по id из ES.
+        Возвращает экземпляр фильма, если они есть в ES, если нет - None'''
+
         try:
             doc = await self.elastic.get(index='movies', id=film_id)
         except NotFoundError:
@@ -83,22 +90,20 @@ class FilmService:
         return Film(**doc['_source'])
 
     async def _film_from_cache(self, film_id: str) -> Optional[Film]:
-        # Пытаемся получить данные о фильме из кеша, используя команду get
-        # https://redis.io/commands/get/
+        '''Функция для получения экземпляра фильма по id из кэша.
+        Возвращает экземпляр фильма, если они есть в кеше, если нет - None'''
+
         data = await self.redis.get(film_id)
 
         if not data:
             return None
 
-        # pydantic предоставляет удобное API для создания объекта моделей из json
         film = Film.parse_raw(data)
         return film
 
     async def _put_film_to_cache(self, film: Film):
-        # Сохраняем данные о фильме, используя команду set
-        # Выставляем время жизни кеша — 5 минут
-        # https://redis.io/commands/set/
-        # pydantic позволяет сериализовать модель в json
+        '''Функция для сохранения данных о фильме в кэш'''
+
         await self.redis.set(film.id, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS)
 
 
