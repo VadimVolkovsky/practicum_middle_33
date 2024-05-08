@@ -12,6 +12,6 @@ main_router.include_router(
 
 main_router.include_router(
     persons_router,
-    prefix='/api/v1/films',
+    prefix='/api/v1/persons',
     tags=['Persons'],
 )
