@@ -1,3 +1,4 @@
+import json
 from functools import lru_cache
 from typing import Optional
 
@@ -9,7 +10,6 @@ from db.elastic import get_elastic
 from db.redis import get_redis
 from models.film import Film
 from services.utils import _get_query_body
-
 
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
 
@@ -38,7 +38,7 @@ class FilmService:
 
     async def get_list_film(self,
                             start_index: int,
-                            end_index: int,
+                            page_size: int,
                             sort: str = None,
                             genre: str = None,
                             query: str = None) -> Optional[list[Film]]:
@@ -47,16 +47,23 @@ class FilmService:
         В случае отсутствия подходящих фильмов - возвращает None.
         """
 
-        # film_list = await self._list_film_from_cache()
-        film_list = None
+        parameters = str({
+            "start_index": start_index,
+            "page_size": page_size,
+            "sort": sort,
+            "genre": genre,
+            "query": query
+        })
+
+        film_list = await self._list_film_from_cache(parameters)
 
         if not film_list:
-            film_list = await self._get_list_film_from_elastic(start_index, end_index, sort, genre, query)
+            film_list = await self._get_list_film_from_elastic(start_index, page_size, sort, genre, query)
 
             if not film_list:
                 return None
 
-            # await self._put_film_to_cache(list_film)
+            await self._put_list_film_to_cache(parameters, film_list)
         return film_list
 
     async def _get_list_film_from_elastic(self,
@@ -115,6 +122,30 @@ class FilmService:
         Сохраняем данные о фильме в кэш, сериализуя модель через pydantic в формат json.
         """
         await self.redis.set(film.id, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS)
+
+    async def _list_film_from_cache(self, parameters: str) -> Optional[list[Film]]:
+        """
+        Получаем данные о фильме из кэша.
+        Если фильма в кэше нет - возвращаем None
+        """
+
+        data = await self.redis.get(parameters)
+        if not data:
+            return None
+
+        # pydantic предоставляет удобное API для создания объекта моделей из json
+
+        data = data.decode()
+        dict_data = json.loads(data)
+        films = [Film.parse_raw(json.dumps(i)) for i in dict_data]
+        return films
+
+    async def _put_list_film_to_cache(self, parameters: str, films: list[Film]):
+        """
+        Сохраняем данные о фильме в кэш, сериализуя модель через pydantic в формат json.
+        """
+        value = ','.join([i.json() for i in films])
+        await self.redis.set(parameters, '[' + value + ']', FILM_CACHE_EXPIRE_IN_SECONDS)
 
 
 @lru_cache()
