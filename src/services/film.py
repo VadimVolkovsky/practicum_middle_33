@@ -20,8 +20,10 @@ class FilmService:
         self.elastic = elastic
 
     async def get_by_id(self, film_id: str) -> Optional[Film]:
-        '''функция для получения экземпляра фильма по id. Возвращает None если фильм отсутствует в базе данных'''
-
+        """
+        Метод возвращает объект фильма по id.
+        В случае отсутствия фильма с указанным id - возвращает None
+        """
         film = await self._film_from_cache(film_id)
 
         if not film:
@@ -40,9 +42,10 @@ class FilmService:
                             sort: str = None,
                             genre: str = None,
                             query: str = None) -> Optional[list[Film]]:
-        '''Функция для получения списка фильмов, используя параметры фильтрации и сортировки.
-        Сначала поиск ведется в кэше, если в кэше нет нужных данных - поиск ведется в ES
-        Возвращает None, если в базе нет фильмов с указанными парамметрами поиска'''
+        """
+        Метод возвращает список фильмов подходящих под указанные параметры.
+        В случае отсутствия подходящих фильмов - возвращает None.
+        """
 
         # film_list = await self._list_film_from_cache()
         film_list = None
@@ -62,8 +65,11 @@ class FilmService:
                                           sort: Optional[str] = None,
                                           genre: Optional[str] = None,
                                           query: Optional[str] = None) -> Optional[list[Film]]:
-        '''Функция для получения списка фильмов, используя параметры фильтрации и сортировки из ES.
-        Возвращает список фильмов, если они есть в ES, если нет - None'''
+        """
+        Вспомогательный метод для получения списка фильмов из ElasticSearch,
+        соответствующих указанным параметрам.
+        В случае отсутствия подходящих фильмов - возвращает None.
+        """
 
         query_body = await _get_query_body(start_index, page_size, sort, genre, query)
 
@@ -79,9 +85,10 @@ class FilmService:
         return list_film
 
     async def _get_film_from_elastic(self, film_id: str) -> Optional[Film]:
-        '''Функция для получения экземпляра фильма по id из ES.
-        Возвращает экземпляр фильма, если они есть в ES, если нет - None'''
-
+        """
+        Вспомогательный метод для получения фильма из ElasticSearch по его id.
+        В случае отсутствия подходящего фильма - возвращает None.
+        """
         try:
             doc = await self.elastic.get(index='movies', id=film_id)
         except NotFoundError:
@@ -90,30 +97,33 @@ class FilmService:
         return Film(**doc['_source'])
 
     async def _film_from_cache(self, film_id: str) -> Optional[Film]:
-        '''Функция для получения экземпляра фильма по id из кэша.
-        Возвращает экземпляр фильма, если они есть в кеше, если нет - None'''
-
+        """
+        Получаем данные о фильме из кэша.
+        Если фильма в кэше нет - возвращаем None
+        """
         data = await self.redis.get(film_id)
 
         if not data:
             return None
 
+        # pydantic предоставляет удобное API для создания объекта моделей из json
         film = Film.parse_raw(data)
         return film
 
     async def _put_film_to_cache(self, film: Film):
-        '''Функция для сохранения данных о фильме в кэш'''
-
+        """
+        Сохраняем данные о фильме в кэш, сериализуя модель через pydantic в формат json.
+        """
         await self.redis.set(film.id, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS)
 
 
-# get_film_service — это провайдер FilmService.
-# С помощью Depends он сообщает, что ему необходимы Redis и Elasticsearch
-# Для их получения вы ранее создали функции-провайдеры в модуле db
-# Используем lru_cache-декоратор, чтобы создать объект сервиса в едином экземпляре (синглтона)
 @lru_cache()
 def get_film_service(
         redis: Redis = Depends(get_redis),
         elastic: AsyncElasticsearch = Depends(get_elastic),
 ) -> FilmService:
+    """
+    Провайдер FilmService
+    Используем lru_cache-декоратор, чтобы создать объект сервиса в едином экземпляре (синглтона)
+    """
     return FilmService(redis, elastic)

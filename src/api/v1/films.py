@@ -56,8 +56,11 @@ async def film_search(query: str,
 
 @router.get('/{film_id}', response_model=FilmSerializer)
 async def film_details(film_id: str, film_service: FilmService = Depends(get_film_service)) -> FilmSerializer:
-    '''Эндпоинт для получения экземпляра фильна по id
-    :param film_id: id экземпляра фильма'''
+    """
+    Метод возвращает сериализованный объект фильма по id.
+    В случае отсутствия фильма с указанным id - возвращает код ответа 404
+    :param film_id: id экземпляра фильма
+    """
 
     film = await film_service.get_by_id(film_id)
 
@@ -73,11 +76,14 @@ async def film_list(page_number: int = Query(1, gt=0),
                     sort: Optional[str] = None,
                     genre: Optional[str] = None,
                     film_service: FilmService = Depends(get_film_service)) -> list[FilmListSerializer]:
-    '''Эндпоинт для получения списка фильмов с сортировкой, пагинацией, фильтром
+    """
+    Метод возвращает сериализованный список фильмов, с опциональной фильтрацией по жанру.
+    В случае отсутствия подходяших фильмов - возвращает код ответа 404
     :param page_number: номер страницы
     :param page_size: размер станицы
     :param sort: поле, по которому ссортируется список
     :param genre: жанр, по которому фильтруется список фильмов'''
+    """
 
     sort = await validation_index_model_fiield(sort)
     start_index = (page_number - 1) * page_size
