@@ -10,6 +10,7 @@ from db.redis import get_redis
 from models.film import Film
 from services.utils import _get_query_body
 
+
 FILM_CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
 
 
@@ -24,19 +25,23 @@ class FilmService:
         В случае отсутствия фильма с указанным id - возвращает None
         """
         film = await self._film_from_cache(film_id)
+
         if not film:
             film = await self._get_film_from_elastic(film_id)
+
             if not film:
                 return None
+
             await self._put_film_to_cache(film)
+
         return film
 
     async def get_list_film(self,
                             start_index: int,
                             end_index: int,
-                            sort: [str | None] = None,
-                            genre: [str | None] = None,
-                            query: [str | None] = None) -> Optional[list[Film]]:
+                            sort: str = None,
+                            genre: str = None,
+                            query: str = None) -> Optional[list[Film]]:
         """
         Метод возвращает список фильмов подходящих под указанные параметры.
         В случае отсутствия подходящих фильмов - возвращает None.
@@ -44,10 +49,13 @@ class FilmService:
 
         # film_list = await self._list_film_from_cache()
         film_list = None
+
         if not film_list:
             film_list = await self._get_list_film_from_elastic(start_index, end_index, sort, genre, query)
+
             if not film_list:
                 return None
+
             # await self._put_film_to_cache(list_film)
         return film_list
 
@@ -85,6 +93,7 @@ class FilmService:
             doc = await self.elastic.get(index='movies', id=film_id)
         except NotFoundError:
             return None
+
         return Film(**doc['_source'])
 
     async def _film_from_cache(self, film_id: str) -> Optional[Film]:
@@ -93,8 +102,11 @@ class FilmService:
         Если фильма в кэше нет - возвращаем None
         """
         data = await self.redis.get(film_id)
+
         if not data:
             return None
+
+        # pydantic предоставляет удобное API для создания объекта моделей из json
         film = Film.parse_raw(data)
         return film
 
