@@ -13,6 +13,7 @@ router = APIRouter()
 # У неё есть встроенные механизмы валидации, сериализации и десериализации
 # Также она основана на дата-классах
 
+
 # Модель ответа API
 class Film(BaseModel):
     id: str
@@ -23,10 +24,11 @@ class Film(BaseModel):
 @router.get('/{film_id}', response_model=Film)
 async def film_details(film_id: str, film_service: FilmService = Depends(get_film_service)) -> Film:
     film = await film_service.get_by_id(film_id)
+
     if not film:
         # Если фильм не найден, отдаём 404 статус
         # Желательно пользоваться уже определёнными HTTP-статусами, которые содержат enum
-                # Такой код будет более поддерживаемым
+        # Такой код будет более поддерживаемым
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='film not found')
 
     # Перекладываем данные из models.Film в Film

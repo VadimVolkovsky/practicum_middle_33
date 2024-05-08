@@ -6,11 +6,10 @@ from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from redis.asyncio import Redis
 
+from api.v1 import films
 from core import config
 from core.logger import LOGGING
-from db import elastic
-from db import redis
-from src.api.v1 import films
+from db import redis, elastic
 
 app = FastAPI(
     title=config.PROJECT_NAME,

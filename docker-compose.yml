@@ -1,0 +1,49 @@
+version: '3.4'
+services:
+
+  api:
+    image: async_api_image
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    restart: always
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - API_REDIS_HOST=redis
+    ports:
+      - 8000:8000
+    command: python src/main.py
+#    command: uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+    depends_on:
+      - redis
+      - elasticsearch
+
+  redis:
+    image: redis:latest
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    ports:
+      - 6380:6379
+
+  elasticsearch:
+    image: elasticsearch:8.13.0
+    healthcheck:
+      test: curl -s http://elasticsearch:9200 >/dev/null || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 50
+    volumes:
+      - ./src/db/elasticsearch/data/:/src/elasticsearch/data/
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms200m -Xmx200m
+    ports:
+      - "9200:9200"
