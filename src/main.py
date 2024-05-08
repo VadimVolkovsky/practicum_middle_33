@@ -33,7 +33,7 @@ async def shutdown():
     await elastic.es.close()
 
 
-app.include_router(main_router, prefix='/api/v1/films')
+app.include_router(main_router, prefix='/api/v1')
 
 if __name__ == '__main__':
     uvicorn.run(

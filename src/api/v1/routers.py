@@ -6,12 +6,12 @@ main_router = APIRouter()
 
 main_router.include_router(
     films_router,
-    prefix='/api/v1/films',
+    prefix='/films',
     tags=['Films'],
 )
 
 main_router.include_router(
     persons_router,
-    prefix='/api/v1/persons',
+    prefix='/persons',
     tags=['Persons'],
 )
