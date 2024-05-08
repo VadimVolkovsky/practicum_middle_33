@@ -3,6 +3,7 @@ from typing import Optional
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
+from pydantic import BaseModel
 from redis.asyncio import Redis
 
 from db.elastic import get_elastic
@@ -19,22 +20,25 @@ class FilmService:
         self.redis = redis
         self.elastic = elastic
 
-    async def get_by_id(self, film_id: str) -> Optional[Film]:
+    async def get_by_id(self, film_id: str, index_dict: dict[str, BaseModel]) -> Optional[Film]:
         """
-        Метод возвращает объект фильма по id.
-        В случае отсутствия фильма с указанным id - возвращает None
+        Метод возвращает объект по id.
+        В случае отсутствия объекта с указанным id - возвращает None
         """
-        film = await self._film_from_cache(film_id)
+        index_name = index_dict.get('index_name')
+        index_model = index_dict.get('index_model')
 
-        if not film:
-            film = await self._get_film_from_elastic(film_id)
+        instance = await self._film_from_cache(film_id)
 
-            if not film:
+        if not instance:
+            instance = await self._get_instance_from_elastic(film_id, index_name, index_model)
+
+            if not instance:
                 return None
 
-            await self._put_film_to_cache(film)
+            await self._put_film_to_cache(instance)
 
-        return film
+        return instance
 
     async def get_list_film(self,
                             start_index: int,
@@ -84,17 +88,17 @@ class FilmService:
 
         return list_film
 
-    async def _get_film_from_elastic(self, film_id: str) -> Optional[Film]:
+    async def _get_instance_from_elastic(self, film_id: str, index_name: str, index_model: BaseModel) -> Optional[Film]:
         """
         Вспомогательный метод для получения фильма из ElasticSearch по его id.
         В случае отсутствия подходящего фильма - возвращает None.
         """
         try:
-            doc = await self.elastic.get(index='movies', id=film_id)
+            doc = await self.elastic.get(index=index_name, id=film_id)
         except NotFoundError:
             return None
 
-        return Film(**doc['_source'])
+        return index_model(**doc['_source'])
 
     async def _film_from_cache(self, film_id: str) -> Optional[Film]:
         """
