@@ -1,6 +1,7 @@
 import logging
 import os
 from time import sleep
+from typing import Optional
 
 from elasticsearch.helpers import scan
 from faker import Faker
@@ -9,11 +10,12 @@ import random
 
 from pydantic import BaseModel, Field
 
-from schemas.es_schemas import elastic_film_index_schema, elastic_genre_index_schema
+from schemas.es_schemas import elastic_film_index_schema, elastic_genre_index_schema, elastic_person_index_schema
 import core.config as config
 
 
-OBJECT_QTY = 100
+FILMS_QTY = 100
+PERSONS_QTY = 500
 RATING_MIN = 1
 RATING_MAX = 10
 NUMBER_OF_DECIMALS = 1  # кол-во цифр после запятой в рейтинге фильма
@@ -30,7 +32,13 @@ logger.setLevel(logging.INFO)
 class PersonSchema(BaseModel):
     id: str
     name: str
-    role: str
+    role: Optional[str]
+
+    def dict(self, **kwargs):
+        """"""
+        obj_dict = super().dict(**kwargs)
+        del obj_dict['role']
+        return obj_dict
 
 
 class GenreSchema(BaseModel):
@@ -69,7 +77,7 @@ class ElasticDataGenerator:
     """Класс для генерации и загрузки данных в ElasticSearch"""
     persons: list[PersonSchema] = None
     genres: list[GenreSchema] = None
-    items: list[FilmWorkSchema | GenreSchema] = None
+    items: list[FilmWorkSchema | GenreSchema | PersonSchema] = []
 
     def __init__(self, es_index_name: str, es_index_schema: dict):
         self.es_index_name = es_index_name
@@ -86,6 +94,8 @@ class ElasticDataGenerator:
             self._generate_films()
         elif self.es_index_name == 'genres':
             self._get_genres_from_movies()
+        elif self.es_index_name == 'persons':
+            self._get_persons_from_movies()
         self._load_data_to_elastic()
 
     def _create_elastic_index(self):
@@ -108,7 +118,7 @@ class ElasticDataGenerator:
                 id=self.fake.uuid4(),
                 name=self.fake.name(),
                 role=random.choice(list(ROLES.values())))
-            for _ in range(OBJECT_QTY)
+            for _ in range(PERSONS_QTY)
         ]
 
     def _generate_genres(self):
@@ -127,17 +137,27 @@ class ElasticDataGenerator:
             title=self.fake.bs().title(),
             persons=random.sample(self.persons, k=random.randint(5, 15)),
             description=self.fake.text(),
-        ) for _ in range(OBJECT_QTY)]
+        ) for _ in range(FILMS_QTY)]
 
     def _get_genres_from_movies(self):
         """Получает список из всех жанров, которые есть в добавленных фильмах"""
-        self.items = []
+        # self.items = []
         film_data = scan(self.elastic, index='movies', query={"query": {"match_all": {}}})
         for film in film_data:
             for genre in film['_source']['genre']:
                 genre_obj = GenreSchema(**genre)
                 if genre_obj not in self.items:
                     self.items.append(genre_obj)
+
+    def _get_persons_from_movies(self):
+        """"""
+        film_data = scan(self.elastic, index='movies', query={"query": {"match_all": {}}})
+        for film in film_data:
+            for roles, role in ROLES.items():
+                for person in film['_source'][roles]:
+                    person_obj = PersonSchema(**person)
+                    if person_obj not in self.items:
+                        self.items.append(person_obj)
 
     def _load_data_to_elastic(self):
         """Загрузка данных в эластик"""
@@ -159,6 +179,7 @@ if __name__ == '__main__':
     indexes = {
         'movies': elastic_film_index_schema,
         'genres': elastic_genre_index_schema,
+        'persons': elastic_person_index_schema,
     }
     for index_name, index_schema in indexes.items():
         fake_data_generator = ElasticDataGenerator(index_name, index_schema)
