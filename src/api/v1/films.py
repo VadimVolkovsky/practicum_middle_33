@@ -37,7 +37,7 @@ async def film_search(query: str,
                       page_size: int = Query(100, gt=0),
                       sort: Optional[str] = None,
                       film_service: FilmService = Depends(get_film_service)) -> list[FilmListSerializer]:
-    '''Эндпоинт для полнотекстового поиска
+    '''Метод для поиска подходящих по названию фильмов
     :param query: строка, по которой производится полнотекстовый поиск
     :param page_number: номер страницы
     :param page_size: размер станицы
