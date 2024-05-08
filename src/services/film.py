@@ -61,8 +61,6 @@ class FilmService:
         await self.redis.set(film.id, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS)
 
 
-
-
 # get_film_service — это провайдер FilmService.
 # С помощью Depends он сообщает, что ему необходимы Redis и Elasticsearch
 # Для их получения вы ранее создали функции-провайдеры в модуле db
