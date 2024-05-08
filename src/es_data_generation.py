@@ -57,6 +57,7 @@ class FilmWorkSchema(BaseModel):
     def _filter_persons(self, role: str):
         if self.persons is not None:
             return [person for person in self.persons if person.role == role]
+
         return []
 
     def _get_persons_info(self, role: str):
@@ -68,8 +69,10 @@ class FilmWorkSchema(BaseModel):
     def dict(self, **kwargs):
         """Трансформирует pydantic объекты в словарь, с распределением персоналий по ключам."""
         obj_dict = super().dict(**kwargs)
+
         for role_key, role_value in ROLES.items():
             obj_dict[role_key] = self._get_persons_info(role_value)
+
         return obj_dict
 
 
@@ -101,6 +104,7 @@ class ElasticDataGenerator:
     def _create_elastic_index(self):
         """Создает индекс в эластике если он еще не создан"""
         logger.info(f'Check if index "{self.es_index_name}" exists...')
+
         if not self.elastic.indices.exists(index=self.es_index_name):
             self.elastic.indices.create(
                 index=self.es_index_name,
@@ -113,6 +117,7 @@ class ElasticDataGenerator:
     def _generate_persons(self):
         """Генерация персоналий"""
         logger.info('Generating persons...')
+
         self.persons = [
             PersonSchema(
                 id=self.fake.uuid4(),
@@ -124,12 +129,14 @@ class ElasticDataGenerator:
     def _generate_genres(self):
         """Генерация жанров"""
         logger.info('Generating genres...')
+
         genres = ['Action', 'Western', 'Detective', 'Drama', 'Comedy', 'Melodrama', ]
         self.genres = [GenreSchema(id=self.fake.uuid4(), name=name) for name in genres]
 
     def _generate_films(self):
         """Генерация фильмов"""
         logger.info('Generating films...')
+
         self.items = [FilmWorkSchema(
             id=self.fake.uuid4(),
             imdb_rating=round(random.uniform(RATING_MIN, RATING_MAX), NUMBER_OF_DECIMALS),
@@ -162,7 +169,9 @@ class ElasticDataGenerator:
     def _load_data_to_elastic(self):
         """Загрузка данных в эластик"""
         bulk_data = []
-        logger.info(f'Preparing data for load to index "{self.es_index_name}"...')
+
+        logger.info('Preparing data for load...')
+
         for item in self.items:
             bulk_data.append({
                 '_op_type': 'index',
@@ -170,8 +179,10 @@ class ElasticDataGenerator:
                 '_id': item.id,
                 '_source': item.dict()
             })
+
         helpers.bulk(self.elastic, bulk_data)
         sleep(5)  # чтобы данные успели полностью загрузиться в эластик, и их можно было получать
+
         logger.info(f'{len(bulk_data)} objects were successfully loaded to index "{self.es_index_name}" ')
 
 

@@ -1,12 +1,8 @@
-import uuid
 from datetime import datetime
 from typing import Optional
 
 import orjson
 from pydantic import BaseModel
-
-from models.genre import Genre
-from models.person import Person
 
 
 def orjson_dumps(v, *, default):
@@ -15,16 +11,30 @@ def orjson_dumps(v, *, default):
 
 
 class Film(BaseModel):
-    id: uuid.UUID
-    imdb_rating: Optional[float]
-    genre: list[Genre]
+    # id: str
+    # imdb_rating: Optional[float]
+    # genre: Optional[list[Genre]]
+    # title: str
+    # description: Optional[str]
+    # directors: Optional[list[Person]]
+    # actors: Optional[list[Person]]
+    # writers: Optional[list[Person]]
+    # file_path: Optional[str]
+    # creation_date: Optional[datetime]
+
+    id: str
     title: str
-    description: str
-    directors: list[Person]
-    actors: list[Person]
-    writers: list[Person]
-    file_path: str
-    creation_date: datetime
+    imdb_rating: Optional[float]
+
+    genre: Optional[list[dict[str, str]]]
+    description: Optional[str]
+
+    directors: Optional[list[dict[str, str]]]
+    actors: Optional[list[dict[str, str]]]
+    writers: Optional[list[dict[str, str]]]
+
+    file_path: Optional[str]
+    creation_date: Optional[datetime]
 
     class Config:
         # Заменяем стандартную работу с json на более быструю
