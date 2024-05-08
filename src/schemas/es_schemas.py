@@ -63,9 +63,10 @@ elastic_film_index_schema = {
             "writers": {
                 "type": "nested",
                 "dynamic": "strict",
-                "properties": {"id": {"type": "keyword"},
-                               "name": {"type": "text", "analyzer": "ru_en"}
-                               }
+                "properties": {
+                    "id": {"type": "keyword"},
+                    "name": {"type": "text", "analyzer": "ru_en"}
+                }
             }
         }
     }

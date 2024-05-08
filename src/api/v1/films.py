@@ -7,16 +7,9 @@ from pydantic import BaseModel
 
 from services.film import FilmService, get_film_service
 
-# Объект router, в котором регистрируем обработчики
 router = APIRouter()
 
-# FastAPI в качестве моделей использует библиотеку pydantic
-# https://pydantic-docs.helpmanual.io
-# У неё есть встроенные механизмы валидации, сериализации и десериализации
-# Также она основана на дата-классах
 
-
-# Модель ответа API
 class FilmListSerializer(BaseModel):
     id: str
     title: str
@@ -39,6 +32,9 @@ async def film_search(query: str,
                       page_size: int = Query(100, gt=0),
                       sort: Optional[str] = None,
                       film_service: FilmService = Depends(get_film_service)) -> list[FilmListSerializer]:
+    """
+    Метод для поиска подходящих по названию фильмов
+    """
     start_index = (page_number - 1) * page_size
 
     film_list = await film_service.get_list_film(start_index, page_size, sort=sort, query=query)
@@ -52,6 +48,10 @@ async def film_search(query: str,
 
 @router.get('/{film_id}', response_model=FilmSerializer)
 async def film_details(film_id: str, film_service: FilmService = Depends(get_film_service)) -> FilmSerializer:
+    """
+    Метод возвращает сериализованный объект фильма по id.
+    В случае отсутствия фильма с указанным id - возвращает код ответа 404
+    """
     film = await film_service.get_by_id(film_id)
 
     if not film:
@@ -66,6 +66,10 @@ async def film_list(page_number: int = Query(1, gt=0),
                     sort: Optional[str] = None,
                     genre: Optional[str] = None,
                     film_service: FilmService = Depends(get_film_service)) -> list[FilmListSerializer]:
+    """
+    Метод возвращает сериализованный список фильмов, с опциональной фильтрацией по жанру.
+    В случае отсутствия подходяших фильмов - возвращает код ответа 404
+    """
     # Применяем пагинацию
     start_index = (page_number - 1) * page_size
     # end_index = start_index + page_size
