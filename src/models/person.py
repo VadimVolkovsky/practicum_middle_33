@@ -10,7 +10,7 @@ def orjson_dumps(v, *, default):
 
 
 class Person(BaseModel):
-    id: uuid.UUID
+    id: str
     name: str
 
     class Config:
