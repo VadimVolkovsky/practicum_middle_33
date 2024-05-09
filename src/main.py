@@ -32,7 +32,6 @@ async def shutdown():
     await redis.redis.close()
     await elastic.es.close()
 
-
 app.include_router(main_router, prefix='/api/v1')
 
 if __name__ == '__main__':
