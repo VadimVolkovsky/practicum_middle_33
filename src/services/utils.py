@@ -49,17 +49,42 @@ async def _get_query_body(start_index: int,
 
         body = {
             "query": {
-                "nested": {
-                    "path": "writers",
-                    "query": {
-                        "bool": {
-                            "should": [
-                                {"match": {"directors.id": person_id}},
-                                {"match": {"actors.id": person_id}},
-                                {"match": {"writers.id": person_id}},
-                            ]
+                'bool': {
+                    'should': [
+                        {"nested": {
+                            "path": "directors",
+                            "query": {
+                                "bool": {
+                                    "must": [
+                                        {"match": {"directors.id": person_id}},
+                                    ]
+                                }
+                            }
                         }
-                    }
+                        },
+                        {"nested": {
+                            "path": "actors",
+                            "query": {
+                                "bool": {
+                                    "must": [
+                                        {"match": {"actors.id": person_id}},
+                                    ]
+                                }
+                            }
+                        }
+                        },
+                        {"nested": {
+                            "path": "writers",
+                            "query": {
+                                "bool": {
+                                    "must": [
+                                        {"match": {"writers.id": person_id}},
+                                    ]
+                                }
+                            }
+                        }
+                        }
+                    ]
                 }
             }
         }
