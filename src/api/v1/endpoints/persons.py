@@ -4,6 +4,7 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from db.elastic import Indexes
 from services.person import PersonService, get_person_service
 
 router = APIRouter()
@@ -38,12 +39,17 @@ async def person_detail(
         person_service: PersonService = Depends(get_person_service)
 ) -> PersonSerializer:
     """Получение информации о персонаже, со списком его фильмов и ролей"""
-    person_with_films = await person_service.get_by_id(person_id)
+    try:
+        index_dict = Indexes.persons.value
+        person = await person_service.get_by_id(person_id, index_dict)
+        films_data = await person_service.get_person_films_from_elastic(start_index=1, page_size=100, person=person)
+    except KeyError:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='index not found')
 
-    if not person_with_films:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='person not found')
-
-    return PersonSerializer(**person_with_films)
+    films_by_person = await person_service.filter_films_by_person_with_role(films_data, person)
+    person_data = person.dict()
+    person_data['films'] = films_by_person
+    return PersonSerializer(**person_data)
 
 
 @router.get('/{person_id}/film', response_model=list[PersonFilmsSerializer])
@@ -52,9 +58,7 @@ async def person_films_detail(
         person_service: PersonService = Depends(get_person_service)
 ) -> list[PersonFilmsSerializer]:
     """Получение информации о фильмах, в которых принял участие персонаж"""
-    persons_films = await person_service.get_person_films_by_id(person_id)
-
-    if not persons_films:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='person not found')
-
+    index_dict = Indexes.persons.value
+    person = await person_service.get_by_id(person_id, index_dict)
+    persons_films = await person_service.get_person_films_by_id(person)
     return [PersonFilmsSerializer(**film.dict()) for film in persons_films]

@@ -4,6 +4,7 @@ from typing import Optional
 from elasticsearch import AsyncElasticsearch
 from models.film import Film
 from models.genre import Genre
+from models.person import Person
 
 es: Optional[AsyncElasticsearch] = None
 
@@ -17,3 +18,5 @@ class Indexes(Enum):
               'index_model': Film}
     genres = {'index_name': 'genres',
               'index_model': Genre}
+    persons = {'index_name': 'persons',
+               'index_model': Person}
