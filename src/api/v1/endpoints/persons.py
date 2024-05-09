@@ -26,7 +26,7 @@ class PersonSerializer(BaseModel):
 
 
 class PersonFilmsSerializer(BaseModel):
-    """"""
+    """Модель для отображения фильмов, в которых принял участие персонаж"""
     id: str
     title: str
     imdb_rating: Optional[float]
@@ -51,7 +51,7 @@ async def person_films_detail(
         person_id: str,
         person_service: PersonService = Depends(get_person_service)
 ) -> list[PersonFilmsSerializer]:
-    """"""
+    """Получение информации о фильмах, в которых принял участие персонаж"""
     persons_films = await person_service.get_person_films_by_id(person_id)
 
     if not persons_films:
