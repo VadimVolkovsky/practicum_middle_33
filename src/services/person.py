@@ -3,7 +3,6 @@ from typing import Optional
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
-from pydantic import BaseModel
 from redis.asyncio import Redis
 
 from db.elastic import get_elastic
@@ -11,7 +10,6 @@ from db.redis import get_redis
 from models.film import Film
 from models.person import Person
 from services.utils import _get_query_body
-
 
 CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
 ROLES = {
@@ -21,28 +19,35 @@ ROLES = {
 }
 
 
-class PersonsFilms(BaseModel):
-    id: str
-    roles: list[str]
-
-
 class PersonService:
     def __init__(self, redis: Redis, elastic: AsyncElasticsearch):
         self.redis = redis
         self.elastic = elastic
 
     async def get_by_id(self, person_id: str) -> Optional[dict]:
-        """"""
+        """Сервис для получения данных о персоне, с указанием его фильмов и ролей"""
         person = await self._person_from_cache(person_id)
         if not person:
             person = await self._get_person_from_elastic(person_id)
             if not person:
                 return None
             await self._put_person_to_cache(person)
-        films_by_person = await self._get_person_films_from_elastic(start_index=1, page_size=100, person=person)
+        films_data = await self._get_person_films_from_elastic(start_index=1, page_size=100, person=person)
+        films_by_person = await self._filter_films_by_person_with_role(films_data, person)
         person_data = person.dict()
         person_data['films'] = films_by_person
         return person_data
+
+    async def get_person_films_by_id(self, person_id: str):
+        """Сервис для получения информации о фильмах, в которых персонаж принимал участие"""
+        person = await self._person_from_cache(person_id)
+        if not person:
+            person = await self._get_person_from_elastic(person_id)
+            if not person:
+                return None
+            await self._put_person_to_cache(person)
+        films_data = await self._get_person_films_from_elastic(start_index=1, page_size=100, person=person)
+        return films_data
 
     async def _person_from_cache(self, person_id: str) -> Optional[Person]:
         """
@@ -56,6 +61,7 @@ class PersonService:
         return person
 
     async def _get_person_from_elastic(self, person_id: str) -> Optional[Person]:
+        """Получение информации о персонаже из ElasticSearch"""
         try:
             doc = await self.elastic.get(index='persons', id=person_id)
         except NotFoundError:
@@ -67,8 +73,8 @@ class PersonService:
                                              page_size: int,
                                              sort: Optional[str] = None,
                                              person: Optional[Person] = None,
-                                             query: Optional[str] = None):
-        """"""
+                                             query: Optional[str] = None) -> list[Film]:
+        """Получаем список фильмов персонажа из ElasticSearch"""
         query_body = await _get_query_body(
             start_index=start_index,
             page_size=page_size,
@@ -81,17 +87,15 @@ class PersonService:
         except NotFoundError:
             return None
 
-        list_film: list[Film] = [
+        films_data = [
             Film(**hit['_source']) for hit in search['hits']['hits']
         ]
-
-        films_by_person = await self._filter_films_by_person(list_film, person)
-        return films_by_person
+        return films_data
 
     @staticmethod
-    async def _filter_films_by_person(films: list[Film], person: Person) -> list[dict[str, str]]:
+    async def _filter_films_by_person_with_role(films: list[Film], person: Person) -> list[dict[str, str]]:
         """
-        Возвращает список фильмов в которых персонаж принимал участие,
+        Фильтрует список фильмов в которых персонаж принимал участие,
         с указанием его ролей
         """
         films_by_person = []
