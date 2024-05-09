@@ -46,8 +46,6 @@ async def persons_search(query: str,
     :param person_service: '''
 
     start_index = (page_number - 1) * page_size
-    # sort = await validation_index_model_fiield(sort)  # TODO сделать универсальным для всех моделей
-
     persons_data = await person_service.get_list_persons(start_index, page_size, query=query)
 
     if not persons_data:
