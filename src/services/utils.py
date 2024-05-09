@@ -95,13 +95,13 @@ async def _get_query_body(start_index: int,
 
         body['query']['multi_match'] = {
             'query': query,
-            'fields': ['title', 'actors.name', 'writers.name', 'directors.name', 'genre.name', 'description'],
+            'fields': ['title', 'name', 'actors.name', 'writers.name', 'directors.name', 'genre.name', 'description'],
             'fuzziness': 'AUTO'
         }
 
     return body
 
-
+# TODO сделать универсальным под все модели
 async def validation_index_model_fiield(sort_field: Optional[str]) -> None:
     index_model = Indexes.movies.value.get('index_model', None)
 

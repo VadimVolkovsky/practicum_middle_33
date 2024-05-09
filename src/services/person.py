@@ -67,6 +67,39 @@ class PersonService(ProtoService):
             films_by_person.append(film_with_roles)
         return films_by_person
 
+    async def get_list_persons(self,
+                               start_index: int,
+                               page_size: int,
+                               sort: str = None,
+                               query: str = None) -> Optional[list[Person]]:
+        """Поиск персонажей по имени с учетом возможных опечаток"""
+        # TODO get_persons_from_cache
+        persons_data = await self._get_list_persons_from_elastic(start_index, page_size, sort, query)
+        if not persons_data:
+            return None
+        # TODO put_persons_to_cache
+        return persons_data
+
+    # TODO вроде можно объеденить с _get_list_film_from_elastic и вынести в протосервис
+    async def _get_list_persons_from_elastic(self,
+                                             start_index: int,
+                                             page_size: int,
+                                             sort: Optional[str] = None,
+                                             query: Optional[str] = None) -> Optional[list[Person]]:
+        """"""
+        query_body = await _get_query_body(start_index, page_size, sort, query=query)
+
+        try:
+            search = await self.elastic.search(index='persons', body=query_body)
+        except NotFoundError:
+            return None
+
+        persons_data = [
+            Person(**hit['_source']) for hit in search['hits']['hits']
+        ]
+
+        return persons_data
+
 
 @lru_cache()
 def get_person_service(
