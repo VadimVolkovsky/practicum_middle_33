@@ -37,7 +37,6 @@ class PersonFilmsSerializer(BaseModel):
 async def persons_search(query: str,
                          page_number: int = Query(1, gt=0),
                          page_size: int = Query(100, gt=0),
-                         # sort: Optional[str] = None,
                          person_service: PersonService = Depends(get_person_service)) -> list[PersonSerializer]:
     '''Метод для поиска подходящих по имени персонажей
     :param query: строка, по которой производится полнотекстовый поиск
