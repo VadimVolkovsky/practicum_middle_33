@@ -45,7 +45,8 @@ async def film_search(query: str,
     :param sort: поле, по которому ссортируется список'''
 
     start_index = (page_number - 1) * page_size
-    sort = await validation_index_model_fiield(sort)
+    index_model = Indexes.movies.value.get('index_model')
+    sort = await validation_index_model_fiield(sort, index_model)
 
     film_list = await film_service.get_list_film(start_index, page_size, sort=sort, query=query)
 
@@ -88,8 +89,8 @@ async def film_list(page_number: int = Query(1, gt=0),
     :param sort: поле, по которому ссортируется список
     :param genre: жанр, по которому фильтруется список фильмов'''
     """
-
-    sort = await validation_index_model_fiield(sort)
+    index_model = Indexes.movies.value.get('index_model')
+    sort = await validation_index_model_fiield(sort, index_model)
     start_index = (page_number - 1) * page_size
 
     film_list = await film_service.get_list_film(start_index, page_size, sort, genre)
