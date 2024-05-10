@@ -3,7 +3,6 @@ from typing import Optional
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
-from pydantic import BaseModel
 from redis.asyncio import Redis
 
 from db.elastic import get_elastic
@@ -70,14 +69,25 @@ class PersonService(ProtoService):
     async def get_list_persons(self,
                                start_index: int,
                                page_size: int,
-                               sort: str = None,
-                               query: str = None) -> Optional[list[Person]]:
+                               sort: Optional[str] = None,
+                               query: Optional[str] = None,
+                               person_id: Optional[str] = None) -> Optional[list[Person]]:
         """Поиск персонажей по имени с учетом возможных опечаток"""
-        # TODO get_persons_from_cache
-        persons_data = await self._get_list_persons_from_elastic(start_index, page_size, sort, query)
+
+        model = Person
+        parameters = self.get_params_to_cache(
+            start_index=start_index,
+            page_size=page_size,
+            sort=sort,
+            query=query,
+            model=model
+        )
+        persons_data = await self._get_objs_from_cache(parameters, model)
         if not persons_data:
-            return None
-        # TODO put_persons_to_cache
+            persons_data = await self._get_list_persons_from_elastic(start_index, page_size, sort, query)
+            if not persons_data:
+                return None
+            await self._put_objs_to_cache(parameters, persons_data)
         return persons_data
 
     # TODO вроде можно объеденить с _get_list_film_from_elastic и вынести в протосервис
