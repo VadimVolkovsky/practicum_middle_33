@@ -71,7 +71,8 @@ class FilmService:
         В случае отсутствия подходящих фильмов - возвращает None.
         """
 
-        query_body = await _get_query_body(start_index, page_size, sort, genre, query)
+        query_body = await _get_query_body(start_index=start_index, page_size=page_size, sort=sort, genre=genre,
+                                           query=query)
 
         try:
             search = await self.elastic.search(index='movies', body=query_body)
