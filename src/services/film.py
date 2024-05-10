@@ -46,30 +46,6 @@ class FilmService(ProtoService):
             await self._put_objs_to_cache(parameters, film_list)
         return film_list
 
-    async def _get_list_film_from_elastic(self,
-                                          start_index: int,
-                                          page_size: int,
-                                          sort: Optional[str] = None,
-                                          genre: Optional[str] = None,
-                                          query: Optional[str] = None) -> Optional[list[Film]]:
-        """
-        Вспомогательный метод для получения списка фильмов из ElasticSearch,
-        соответствующих указанным параметрам.
-        В случае отсутствия подходящих фильмов - возвращает None.
-        """
-
-        query_body = await _get_query_body(start_index, page_size, sort, genre, query)
-
-        try:
-            search = await self.elastic.search(index='movies', body=query_body)
-        except NotFoundError:
-            return None
-
-        list_film = [
-            Film(**hit['_source']) for hit in search['hits']['hits']
-        ]
-
-        return list_film
 
 
 @lru_cache()

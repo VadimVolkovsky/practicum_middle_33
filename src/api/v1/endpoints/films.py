@@ -57,7 +57,7 @@ async def film_search(query: str,
 
 
 @router.get('/{film_id}', response_model=FilmSerializer)
-async def film_details(film_id: str, film_service: FilmService = Depends(get_film_service)) -> FilmSerializer:
+async def film_details(film_id: str, film_service: FilmService = Depends(get_film_service)) :
     """
     Метод возвращает сериализованный объект фильма по id.
     В случае отсутствия фильма с указанным id - возвращает код ответа 404
@@ -65,12 +65,11 @@ async def film_details(film_id: str, film_service: FilmService = Depends(get_fil
     """
     try:
         index_dict = Indexes.movies.value
-        film = await film_service.get_by_id(film_id, index_dict)
-
+        film, similar_films = await film_service.get_by_id(film_id, index_dict)
         if not film:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='film not found')
 
-        return FilmSerializer(**dict(film))
+        return [FilmSerializer(**dict(film)), [FilmListSerializer(**dict(film)) for film in similar_films]]
     except KeyError:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='index not found')
 

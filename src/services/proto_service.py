@@ -10,6 +10,7 @@ from redis.asyncio import Redis
 from models.film import Film
 from models.genre import Genre
 from models.person import Person
+from services.utils import _get_query_body
 
 CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
 
@@ -31,13 +32,14 @@ class ProtoService:
 
         if not instance:
             instance = await self._get_instance_from_elastic(obj_id, index_name, index_model)
-
+            similar_films = await self._get_list_film_from_elastic(start_index=1,
+                                          page_size=3, genre=instance.genre[0]['id'])
             if not instance:
                 raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail=f'Object {obj_id} not found')
 
             await self._put_obj_to_cache(instance)
 
-        return instance
+        return instance, similar_films
 
     async def _get_instance_from_elastic(self, obj_id: str, index_name: str, index_model: BaseModel) -> Optional[Film]:
         """
@@ -96,21 +98,27 @@ class ProtoService:
         value = ','.join([obj.json() for obj in objs])
         await self.redis.set(parameters, '[' + value + ']', CACHE_EXPIRE_IN_SECONDS)
 
-    async def _get_objs_from_cache2(
-            self, parameters: str,
-            model: Film | Genre | Person
-    ) -> Optional[list[Film | Genre | Person]]:
-        """Получаем объекты из кэша. Если объектов в кэше нет - возвращаем None"""
-        data = await self.redis.get(parameters)
-        if not data:
-            return None
-        data = data.decode()
-        objs = [model.parse_raw(json.dumps(obj)) for obj in json.loads(data)]
-        return objs
+    async def _get_list_film_from_elastic(self,
+                                          start_index: int,
+                                          page_size: int,
+                                          sort: Optional[str] = None,
+                                          genre: Optional[str] = None,
+                                          query: Optional[str] = None) -> Optional[list[Film]]:
+        """
+        Вспомогательный метод для получения списка фильмов из ElasticSearch,
+        соответствующих указанным параметрам.
+        В случае отсутствия подходящих фильмов - возвращает None.
+        """
 
-    async def _put_objs_to_cache2(self, parameters: str, objs: list[Film | Genre | Person]):
-        """
-        Сохраняем данные об объектах в кэш, сериализуя модель через pydantic в формат json.
-        """
-        value = ','.join([obj.json() for obj in objs])
-        await self.redis.set(parameters, '[' + value + ']', CACHE_EXPIRE_IN_SECONDS)
+        query_body = await _get_query_body(start_index, page_size, sort, genre, query)
+
+        try:
+            search = await self.elastic.search(index='movies', body=query_body)
+        except NotFoundError:
+            return None
+
+        list_film = [
+            Film(**hit['_source']) for hit in search['hits']['hits']
+        ]
+
+        return list_film
