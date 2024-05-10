@@ -55,8 +55,10 @@ class ProtoService:
     def get_params_to_cache(**kwargs):
         return str(kwargs)
 
-    async def _get_obj_from_cache(self, obj_id: str, index_model: Film | Genre | Person) -> Optional[
-        Film | Genre | Person]:
+    async def _get_obj_from_cache(
+            self, obj_id: str,
+            index_model: Film | Genre | Person
+    ) -> Optional[Film | Genre | Person]:
         """
         Получаем данные об объекте из кэша. Если объекта в кэше нет - возвращаем None
         """
@@ -75,10 +77,11 @@ class ProtoService:
         """
         await self.redis.set(obj.id, obj.json(), CACHE_EXPIRE_IN_SECONDS)
 
-    async def _get_objs_from_cache(self, parameters: str, model: Film | Genre | Person) -> Optional[
-        list[Film | Genre | Person]]:
+    async def _get_objs_from_cache(
+            self, parameters: str,
+            model: Film | Genre | Person
+    ) -> Optional[list[Film | Genre | Person]]:
         """Получаем объекты из кэша. Если объектов в кэше нет - возвращаем None"""
-        print("good")
         data = await self.redis.get(parameters)
         if not data:
             return None
@@ -93,10 +96,11 @@ class ProtoService:
         value = ','.join([obj.json() for obj in objs])
         await self.redis.set(parameters, '[' + value + ']', CACHE_EXPIRE_IN_SECONDS)
 
-    async def _get_objs_from_cache2(self, parameters: str, model: Film | Genre | Person) -> Optional[
-        list[Film | Genre | Person]]:
+    async def _get_objs_from_cache2(
+            self, parameters: str,
+            model: Film | Genre | Person
+    ) -> Optional[list[Film | Genre | Person]]:
         """Получаем объекты из кэша. Если объектов в кэше нет - возвращаем None"""
-        print("good")
         data = await self.redis.get(parameters)
         if not data:
             return None

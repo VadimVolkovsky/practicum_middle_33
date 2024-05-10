@@ -1,10 +1,8 @@
-import json
 from functools import lru_cache
 from typing import Optional
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
-from pydantic import BaseModel
 from redis.asyncio import Redis
 
 from db.elastic import get_elastic

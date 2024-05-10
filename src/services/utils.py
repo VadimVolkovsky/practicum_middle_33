@@ -1,7 +1,5 @@
 from typing import Optional
 
-from db.elastic import Indexes
-
 
 async def _get_query_body(start_index: int,
                           page_size: int,
