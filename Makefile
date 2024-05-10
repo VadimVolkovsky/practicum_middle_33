@@ -27,3 +27,6 @@ shell:
 
 flake8:
 	$(EXEC_CORE) flake8
+
+generate_data:
+	docker exec -it sprint_4_practicum_middle_33_api_1 python src/es_data_generation.py

@@ -1,36 +1,35 @@
 # **Репозиторий для проектной работы 4 спринта**
 
-### Документация
-
-http://127.0.0.1:8000/api/openapi
 
 ### Инструкция по развертыванию
 
-### Build
+#### Создание контейнеров
 
 ```shell script
 make build
 ```
 
-### Run
+#### Запуск
 
 ```shell script
 make up
 ```
 
-### Linter
+#### Заливка тестовых данных в ElasticSearch
 ```shell script
-make flake8
+make generate_data
 ```
 
-Заливка тестовых данных в ElasticSearch
-```
-python src/es_data_generation.py
-```
+
+### Документация
+
+- http://127.0.0.1:80/api/openapi
 
 ### Авторы
-...
+- [Di-Nov](https://github.com/Di-Nov)
+- [ykolpakov](https://github.com/ykolpakov)
+- [VadimVolkovsky](https://github.com/VadimVolkovsky)
+
 
 ### Другое
-
-python 3.12
+- python 3.12
