@@ -1,7 +1,5 @@
 from typing import Optional
 
-from db.elastic import Indexes
-
 
 async def _get_query_body(start_index: int,
                           page_size: int,
@@ -32,13 +30,11 @@ async def _get_query_body(start_index: int,
         if not body.get('query', None):
             body['query'] = {}
 
+        search_query = {'term': {'genre.id': genre} for genre in genre}
+
         body['query']['nested'] = {
             'path': 'genre',
-            'query': {
-                'term': {
-                    'genre.id': genre
-                }
-            },
+            'query': search_query,
             'inner_hits': {
             }
         }

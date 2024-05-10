@@ -18,7 +18,7 @@ class FilmService(ProtoService):
                             start_index: int,
                             page_size: int,
                             sort: str = None,
-                            genre: str = None,
+                            genre: [str | list[str]] = None,
                             query: str = None,
                             ) -> Optional[list[Film]]:
         """
