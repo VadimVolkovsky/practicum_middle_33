@@ -1,14 +1,14 @@
 from functools import lru_cache
-from typing import Optional
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
 from redis.asyncio import Redis
 
+from constants import OptStrType
 from db.elastic import get_elastic
 from db.redis import get_redis
-from models.film import Film
-from models.person import Person
+from models.models import Film
+from models.models import Person
 from services.proto_service import ProtoService
 from services.utils import _get_query_body
 
@@ -28,9 +28,9 @@ class PersonService(ProtoService):
     async def get_person_films_from_elastic(self,
                                             start_index: int,
                                             page_size: int,
-                                            sort: Optional[str] = None,
-                                            person: Optional[Person] = None,
-                                            query: Optional[str] = None) -> Optional[list[Film]]:
+                                            sort: OptStrType = None,
+                                            person: OptStrType = None,
+                                            query: OptStrType = None) -> list[Film] | None:
         """Получаем список фильмов персонажа из ElasticSearch"""
         query_body = await _get_query_body(
             start_index=start_index,
@@ -56,22 +56,26 @@ class PersonService(ProtoService):
         с указанием его ролей
         """
         films_by_person = []
+
         for film in films:
             film_with_roles = {'id': film.id, 'roles': []}
+
             for roles, role in ROLES.items():
+
                 for role_obj in getattr(film, roles):
+
                     if role_obj['id'] == person.id:
                         film_with_roles['roles'].append(role)
                         break
+
             films_by_person.append(film_with_roles)
         return films_by_person
 
     async def get_list_persons(self,
                                start_index: int,
                                page_size: int,
-                               sort: Optional[str] = None,
-                               query: Optional[str] = None,
-                               person_id: Optional[str] = None) -> Optional[list[Person]]:
+                               sort: OptStrType = None,
+                               query: OptStrType = None) -> list[Person] | None:
         """Поиск персонажей по имени с учетом возможных опечаток"""
 
         model = Person
@@ -83,10 +87,13 @@ class PersonService(ProtoService):
             model=model
         )
         persons_data = await self._get_objs_from_cache(parameters, model)
+
         if not persons_data:
             persons_data = await self._get_list_persons_from_elastic(start_index, page_size, sort, query)
+
             if not persons_data:
                 return None
+
             await self._put_objs_to_cache(parameters, persons_data)
         return persons_data
 
@@ -94,8 +101,8 @@ class PersonService(ProtoService):
     async def _get_list_persons_from_elastic(self,
                                              start_index: int,
                                              page_size: int,
-                                             sort: Optional[str] = None,
-                                             query: Optional[str] = None) -> Optional[list[Person]]:
+                                             sort: OptStrType = None,
+                                             query: OptStrType = None) -> list[Person] | None:
         """"""
         query_body = await _get_query_body(start_index, page_size, sort, query=query)
 
