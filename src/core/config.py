@@ -15,10 +15,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 class AppSettings(BaseSettings):
     project_name: str = 'movies'
-    redis_host: str = ...
-    redis_port: int = ...
-    elastic_host: str = Field(...,)
-    elastic_port: int = Field(9200)
+    redis_host: str = Field(default='redis')
+    redis_port: int = Field(default=6379)
+    elastic_host: str = Field(default='elasticsearch')
+    elastic_port: int = Field(default=9200)
 
     class Config:
         env_file = '.env'
