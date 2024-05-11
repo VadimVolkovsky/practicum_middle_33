@@ -12,6 +12,7 @@ load_dotenv()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+
 class AppSettings(BaseSettings):
     project_name: str = 'movies'
     redis_host: str = ...
@@ -21,5 +22,6 @@ class AppSettings(BaseSettings):
 
     class Config:
         env_file = '.env'
+
 
 app_settings = AppSettings()

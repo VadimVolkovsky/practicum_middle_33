@@ -6,7 +6,6 @@ from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from redis.asyncio import Redis
 
-from core import config
 from core.config import app_settings
 from core.logger import LOGGING
 from db import redis, elastic
