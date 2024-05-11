@@ -90,7 +90,7 @@ async def person_detail(
     return PersonSerializer(**person_data)
 
 
-@router.get('/{person_id}/film', response_model=list[PersonFilmsSerializer], 
+@router.get('/{person_id}/film', response_model=list[PersonFilmsSerializer],
             description="""Выполните запрос на поиск персонажа по его id,
             в ответе будет выведен информация о фильмах, в которых принял участие персонаж""")
 async def person_films_detail(
