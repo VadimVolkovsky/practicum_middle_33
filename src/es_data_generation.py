@@ -11,7 +11,7 @@ import random
 from pydantic import BaseModel, Field
 
 from schemas.es_schemas import elastic_film_index_schema, elastic_genre_index_schema, elastic_person_index_schema
-import core.config as config
+from core.config import app_settings
 
 
 FILMS_QTY = 100
@@ -85,7 +85,7 @@ class ElasticDataGenerator:
     def __init__(self, es_index_name: str, es_index_schema: dict):
         self.es_index_name = es_index_name
         self.es_index_schema = es_index_schema
-        self.elastic = Elasticsearch(host=config.ELASTIC_HOST, port=config.ELASTIC_PORT)
+        self.elastic = Elasticsearch(host=app_settings.elastic_host, port=app_settings.elastic_port)
         self.fake = Faker()
 
     def exec(self):
