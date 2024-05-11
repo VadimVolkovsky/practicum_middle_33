@@ -3,7 +3,8 @@ elasticsearch[async]==7.9.1
 fastapi==0.61.1
 orjson==3.10.3
 pydantic==1.10.15
-uvicorn==0.12.2
+uvicorn[standart]
+gunicorn==22.0.0
 uvloop==0.17.0 ; sys_platform != "wipipn32" and implementation_name == "cpython"
 flake8-print==5.0.0
 flake8-string-format==0.3.0
