@@ -5,8 +5,8 @@ async def _get_query_body(start_index: int,
                           page_size: int,
                           sort: Optional[str] = None,
                           genre: Optional[str] = None,
-                          person_id: Optional[str] = None,
-                          query: Optional[str] = None) -> dict:
+                          query: Optional[str] = None,
+                          person_id: Optional[str] = None) -> dict:
     '''функция для составления запроса поиска в elassticsearch
     :param start_index: номер записи с которой начинается выдача записей с ES
     :param page_size: размер станицы
@@ -30,13 +30,11 @@ async def _get_query_body(start_index: int,
         if not body.get('query', None):
             body['query'] = {}
 
+        search_query = {'term': {'genre.id': genre} for genre in genre}
+
         body['query']['nested'] = {
             'path': 'genre',
-            'query': {
-                'term': {
-                    'genre.id': genre
-                }
-            },
+            'query': search_query,
             'inner_hits': {
             }
         }
