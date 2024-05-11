@@ -30,6 +30,7 @@ class FilmSerializer(FilmListSerializer):
     writers: list[dict[str, str]]
     file_path: Optional[str]
     creation_date: Optional[datetime]
+    recommended_films: list[FilmListSerializer]
 
 
 @router.get('/search', response_model=list[FilmListSerializer])
@@ -70,7 +71,13 @@ async def film_details(film_id: str, film_service: FilmService = Depends(get_fil
         if not film:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='film not found')
 
-        return FilmSerializer(**dict(film))
+        genres = [genre['id'] for genre in film.genre]
+        recommended_film_list = await film_service.get_list_film(start_index=1, page_size=3, sort='-imdb_rating',
+                                                                 genre=genres)
+        return FilmSerializer(
+            recommended_films=[FilmListSerializer(**dict(film)) for film in recommended_film_list],
+            **dict(film)
+        )
     except KeyError:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='index not found')
 

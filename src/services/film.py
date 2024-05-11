@@ -18,7 +18,7 @@ class FilmService(ProtoService):
                             start_index: int,
                             page_size: int,
                             sort: str = None,
-                            genre: str = None,
+                            genre: [str | list[str]] = None,
                             query: str = None,
                             ) -> Optional[list[Film]]:
         """
@@ -58,7 +58,8 @@ class FilmService(ProtoService):
         В случае отсутствия подходящих фильмов - возвращает None.
         """
 
-        query_body = await _get_query_body(start_index, page_size, sort, genre, query)
+        query_body = await _get_query_body(start_index=start_index, page_size=page_size, sort=sort, genre=genre,
+                                           query=query)
 
         try:
             search = await self.elastic.search(index='movies', body=query_body)
