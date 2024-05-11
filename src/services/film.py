@@ -1,13 +1,13 @@
 from functools import lru_cache
-from typing import Optional
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
 from redis.asyncio import Redis
 
+from constants import OptStrType
 from db.elastic import get_elastic
 from db.redis import get_redis
-from models.film import Film
+from models.models import Film
 from services.proto_service import ProtoService
 from services.utils import _get_query_body
 
@@ -20,7 +20,7 @@ class FilmService(ProtoService):
                             sort: str = None,
                             genre: [str | list[str]] = None,
                             query: str = None,
-                            ) -> Optional[list[Film]]:
+                            ) -> list[Film] | None:
         """
         Метод возвращает список фильмов подходящих под указанные параметры.
         В случае отсутствия подходящих фильмов - возвращает None.
@@ -49,9 +49,9 @@ class FilmService(ProtoService):
     async def _get_list_film_from_elastic(self,
                                           start_index: int,
                                           page_size: int,
-                                          sort: Optional[str] = None,
-                                          genre: Optional[str] = None,
-                                          query: Optional[str] = None) -> Optional[list[Film]]:
+                                          sort: OptStrType = None,
+                                          genre: OptStrType = None,
+                                          query: OptStrType = None) -> list[Film] | None:
         """
         Вспомогательный метод для получения списка фильмов из ElasticSearch,
         соответствующих указанным параметрам.

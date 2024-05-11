@@ -1,7 +1,6 @@
 import logging
 import os
 from time import sleep
-from typing import Optional
 
 from elasticsearch.helpers import scan
 from faker import Faker
@@ -32,7 +31,7 @@ logger.setLevel(logging.INFO)
 class PersonSchema(BaseModel):
     id: str
     name: str
-    role: Optional[str]
+    role: str | None = None
 
     def dict(self, **kwargs):
         """"""

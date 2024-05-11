@@ -1,12 +1,12 @@
-from typing import Optional
+from constants import OptStrType
 
 
 async def _get_query_body(start_index: int,
                           page_size: int,
-                          sort: Optional[str] = None,
-                          genre: Optional[str] = None,
-                          query: Optional[str] = None,
-                          person_id: Optional[str] = None) -> dict:
+                          sort: OptStrType = None,
+                          genre: OptStrType = None,
+                          query: OptStrType = None,
+                          person_id: OptStrType = None) -> dict:
     '''функция для составления запроса поиска в elassticsearch
     :param start_index: номер записи с которой начинается выдача записей с ES
     :param page_size: размер станицы
@@ -98,7 +98,7 @@ async def _get_query_body(start_index: int,
     return body
 
 
-async def validation_index_model_fiield(sort_field: Optional[str], index_model) -> None:
+async def validation_index_model_fiield(sort_field: OptStrType, index_model) -> None:
     """Проверяет, что указанное поле подходит для сортировки"""
     if index_model and sort_field and sort_field not in index_model.__fields__.keys():
         return None
