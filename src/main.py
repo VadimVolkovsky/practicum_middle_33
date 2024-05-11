@@ -32,18 +32,6 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-
-# @app.on_event('startup')
-# async def startup():
-#     redis.redis = Redis(host=app_settings.redis_host, port=app_settings.redis_port)
-#     elastic.es = AsyncElasticsearch(hosts=[f'{app_settings.elastic_host}:{app_settings.elastic_port}'])
-#
-#
-# @app.on_event('shutdown')
-# async def shutdown():
-#     await redis.redis.close()
-#     await elastic.es.close()
-
 app.include_router(main_router, prefix='/api/v1')
 
 if __name__ == '__main__':

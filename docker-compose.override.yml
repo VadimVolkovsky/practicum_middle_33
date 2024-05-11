@@ -15,10 +15,11 @@ services:
       - API_REDIS_HOST=redis
     ports:
       - 8000:8000
-    command: python src/main.py
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
     depends_on:
       - redis
       - elasticsearch
+    container_name: 'sprint_4_api'
 
   redis:
     image: redis:latest
@@ -30,6 +31,7 @@ services:
       - REDIS_PORT=6379
     ports:
       - 6380:6379
+    container_name: 'sprint_4_redis'
 
   elasticsearch:
     image: elasticsearch:8.13.0
@@ -46,6 +48,7 @@ services:
       - ES_JAVA_OPTS=-Xms200m -Xmx200m
     ports:
       - 9200:9200
+    container_name: 'sprint_4_elasticsearch'
 
   nginx:
     entrypoint: ["echo", "Service nginx disabled in dev mode"]

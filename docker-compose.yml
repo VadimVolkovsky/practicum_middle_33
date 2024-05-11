@@ -15,10 +15,11 @@ services:
       - API_REDIS_HOST=redis
     ports:
       - 0:8000
-    command: python src/main.py
+    command: gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
     depends_on:
       - redis
       - elasticsearch
+    container_name: 'sprint_4_api'
 
   redis:
     image: redis:latest
@@ -30,6 +31,7 @@ services:
       - REDIS_PORT=6379
     ports:
       - 0:6379
+    container_name: 'sprint_4_redis'
 
   elasticsearch:
     image: elasticsearch:8.13.0
@@ -46,6 +48,7 @@ services:
       - ES_JAVA_OPTS=-Xms200m -Xmx200m
     ports:
       - 0:9200
+    container_name: 'sprint_4_elasticsearch'
 
   nginx:
     image: nginx:1.19.2
@@ -56,3 +59,4 @@ services:
       - api
     ports:
       - "80:80"
+    container_name: 'sprint_4_nginx'

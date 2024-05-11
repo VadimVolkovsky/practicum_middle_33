@@ -13,4 +13,4 @@ RUN  pip install --upgrade pip \
 COPY .flake8 /app/
 COPY  src /app/src
 
-WORKDIR /app
+WORKDIR app/src
