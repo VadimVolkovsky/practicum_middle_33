@@ -16,7 +16,9 @@ class GenreSerializer(BaseModel):
     name: str
 
 
-@router.get('/{genre_id}', response_model=GenreSerializer)
+@router.get('/{genre_id}', response_model=GenreSerializer,
+            description = """Выполните запрос на поиск жанра по его id, 
+            В случае отсутствия жанра с указанным id - возвращает код ответа 404""")
 async def genre_details(genre_id: str, genre_service: GenreService = Depends(get_genre_service)) -> GenreSerializer:
     """
     Метод возвращает сериализованный объект жанра по id.

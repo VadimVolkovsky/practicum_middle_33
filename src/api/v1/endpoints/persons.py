@@ -33,7 +33,15 @@ class PersonFilmsSerializer(BaseModel):
     imdb_rating: Optional[float]
 
 
-@router.get('/search', response_model=list[PersonSerializer])
+@router.get('/search', response_model=list[PersonSerializer],
+            description="""Выполните запрос на поиск персонажа по имени, где:
+            query: строка, по которой производится полнотекстовый поиск
+            page_number: номер страницы
+            page_size: размер станицы
+            sort: поле, по которому ссортируется список
+
+            В ответе будет выведен список персонажей"""
+            )
 async def persons_search(query: str,
                          page_number: int = Query(1, gt=0),
                          page_size: int = Query(100, gt=0),
@@ -61,7 +69,9 @@ async def persons_search(query: str,
     return [PersonSerializer(**dict(person)) for person in persons_data_with_films]
 
 
-@router.get('/{person_id}', response_model=PersonSerializer)
+@router.get('/{person_id}', response_model=PersonSerializer,
+            description="""Выполните запрос на поиск персонажа по его id,
+            в ответе будет выведен подробная информация о персонаже, со списком его фильмов и ролей""")
 async def person_detail(
         person_id: str,
         person_service: PersonService = Depends(get_person_service)
@@ -80,7 +90,9 @@ async def person_detail(
     return PersonSerializer(**person_data)
 
 
-@router.get('/{person_id}/film', response_model=list[PersonFilmsSerializer])
+@router.get('/{person_id}/film', response_model=list[PersonFilmsSerializer], 
+            description="""Выполните запрос на поиск персонажа по его id,
+            в ответе будет выведен информация о фильмах, в которых принял участие персонаж""")
 async def person_films_detail(
         person_id: str,
         person_service: PersonService = Depends(get_person_service)

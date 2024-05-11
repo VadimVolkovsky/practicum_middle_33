@@ -33,7 +33,16 @@ class FilmSerializer(FilmListSerializer):
     recommended_films: list[FilmListSerializer]
 
 
-@router.get('/search', response_model=list[FilmListSerializer])
+@router.get('/search',
+            response_model=list[FilmListSerializer],
+            description="""Выполните запрос на поиск фильмов по названию, где:
+    query - строка, по которой производится полнотекстовый поиск
+    page_number - номер страницы
+    page_size - размер станицы
+    sort - поле, по которому ссортируется список
+    
+    В ответе будет выведен список фильмов с id, названием и рейтингом.
+    """)
 async def film_search(query: str,
                       page_number: int = Query(1, gt=0),
                       page_size: int = Query(100, gt=0),
@@ -57,7 +66,10 @@ async def film_search(query: str,
     return [FilmListSerializer(**dict(film)) for film in film_list]
 
 
-@router.get('/{film_id}', response_model=FilmSerializer)
+@router.get('/{film_id}',
+            response_model=FilmSerializer,
+            description="""Выполните запрос на поиск фильма по его id, 
+            в ответе будет выведен подробная информация о фильме""")
 async def film_details(film_id: str, film_service: FilmService = Depends(get_film_service)) -> FilmSerializer:
     """
     Метод возвращает сериализованный объект фильма по id.
@@ -82,7 +94,18 @@ async def film_details(film_id: str, film_service: FilmService = Depends(get_fil
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='index not found')
 
 
-@router.get('', response_model=list[FilmListSerializer])
+@router.get('', response_model=list[FilmListSerializer],
+            description="""Выполните запрос на поиск фильмов, где:
+                query - строка, по которой производится полнотекстовый поиск
+                page_number: номер страницы
+                page_size: размер станицы
+                sort: поле, по которому ссортируется список
+                genre: жанр, по которому фильтруется список фильмов
+                
+                В ответе будет выведен сериализованный список фильмов, с опциональной фильтрацией по жанру.
+                В случае отсутствия подходяших фильмов - возвращает код ответа 404
+                """
+            )
 async def film_list(page_number: int = Query(1, gt=0),
                     page_size: int = Query(100, gt=0),
                     sort: Optional[str] = None,
