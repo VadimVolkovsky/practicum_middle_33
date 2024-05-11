@@ -12,5 +12,5 @@ class Person(BaseModel):
     name: str
 
     class Config:
-        json_loads = orjson.loads
-        json_dumps = orjson_dumps
+        model_validate_json = orjson.loads
+        model_dump_json = orjson_dumps
