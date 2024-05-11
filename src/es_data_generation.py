@@ -10,7 +10,7 @@ import random
 from pydantic import BaseModel, Field
 
 from schemas.es_schemas import elastic_film_index_schema, elastic_genre_index_schema, elastic_person_index_schema
-import core.config as config
+from core.config import app_settings
 
 
 FILMS_QTY = 100
@@ -84,7 +84,7 @@ class ElasticDataGenerator:
     def __init__(self, es_index_name: str, es_index_schema: dict):
         self.es_index_name = es_index_name
         self.es_index_schema = es_index_schema
-        self.elastic = Elasticsearch(host=config.ELASTIC_HOST, port=config.ELASTIC_PORT)
+        self.elastic = Elasticsearch(host=app_settings.elastic_host, port=app_settings.elastic_port)
         self.fake = Faker()
 
     def exec(self):
@@ -152,19 +152,21 @@ class ElasticDataGenerator:
         for film in film_data:
             for genre in film['_source']['genre']:
                 genre_obj = GenreSchema(**genre)
-                if genre_obj not in self.items:
+                if genre_obj not in items:
                     items.append(genre_obj)
         self.items = items
 
     def _get_persons_from_movies(self):
         """"""
+        items = []
         film_data = scan(self.elastic, index='movies', query={"query": {"match_all": {}}})
         for film in film_data:
             for roles, role in ROLES.items():
                 for person in film['_source'][roles]:
                     person_obj = PersonSchema(**person)
-                    if person_obj not in self.items:
-                        self.items.append(person_obj)
+                    if person_obj not in items:
+                        items.append(person_obj)
+        self.items = items
 
     def _load_data_to_elastic(self):
         """Загрузка данных в эластик"""

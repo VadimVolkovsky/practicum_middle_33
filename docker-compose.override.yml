@@ -47,12 +47,5 @@ services:
     ports:
       - 9200:9200
 
-#  nginx:
-#    image: nginx:1.19.2
-#    volumes:
-#      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-#      - ./nginx/configs:/etc/nginx/conf.d:ro
-#    depends_on:
-#      - api
-#    ports:
-#      - "80:80"
+  nginx:
+    entrypoint: ["echo", "Service nginx disabled in dev mode"]
