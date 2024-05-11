@@ -16,7 +16,10 @@ class ProtoService:
         self.redis = redis
         self.elastic = elastic
 
-    async def get_by_id(self, obj_id: str, index_dict: dict[str, BaseModel | str]) -> Film | Genre | Person | None:
+    async def get_by_id(
+            self, obj_id: str,
+            index_dict: dict[str, BaseModel | str]
+    ) -> Film | Genre | Person | None:
         """
         Метод возвращает объект по id.
         В случае отсутствия объекта с указанным id - возвращает None
@@ -36,7 +39,11 @@ class ProtoService:
 
         return instance
 
-    async def _get_instance_from_elastic(self, obj_id: str, index_name: str, index_model: BaseModel) -> Film | None:
+    async def _get_instance_from_elastic(
+            self, obj_id: str,
+            index_name: str,
+            index_model: BaseModel
+    ) -> Film | Genre | Person | None:
         """
         Вспомогательный метод для получения объекта из ElasticSearch по его id.
         В случае отсутствия подходящего объекта - возвращает None.
@@ -46,7 +53,7 @@ class ProtoService:
         except NotFoundError:
             return None
 
-        return index_model(**doc['_source'])
+        return index_model(**doc['_source'])  # noqa
 
     @staticmethod
     def get_params_to_cache(**kwargs):
@@ -54,8 +61,8 @@ class ProtoService:
 
     async def _get_obj_from_cache(
             self, obj_id: str,
-            index_model: Film | Genre | Person
-    ) -> Film | Genre | Person | None:
+            index_model: BaseModel
+    ) -> BaseModel | None:
         """
         Получаем данные об объекте из кэша. Если объекта в кэше нет - возвращаем None
         """

@@ -97,7 +97,6 @@ class PersonService(ProtoService):
             await self._put_objs_to_cache(parameters, persons_data)
         return persons_data
 
-    # TODO вроде можно объеденить с _get_list_film_from_elastic и вынести в протосервис
     async def _get_list_persons_from_elastic(self,
                                              start_index: int,
                                              page_size: int,
