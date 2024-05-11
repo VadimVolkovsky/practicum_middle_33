@@ -1,13 +1,14 @@
 from datetime import datetime
 from http import HTTPStatus
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 
+from constants import ListDictType, OptStrType
 from db.elastic import Indexes
 from services.film import FilmService, get_film_service
 from services.utils import validation_index_model_fiield
+
 
 router = APIRouter()
 
@@ -24,12 +25,12 @@ class FilmSerializer(FilmListSerializer):
     '''модель для возврата экземпляра фильма из API'''
 
     description: str
-    genre: list[dict[str, str]]
-    directors: list[dict[str, str]]
-    actors: list[dict[str, str]]
-    writers: list[dict[str, str]]
-    file_path: Optional[str]
-    creation_date: Optional[datetime]
+    genre: ListDictType
+    directors: ListDictType
+    actors: ListDictType
+    writers: ListDictType
+    file_path: OptStrType = None
+    creation_date: datetime | None = None
     recommended_films: list[FilmListSerializer]
 
 
@@ -37,7 +38,7 @@ class FilmSerializer(FilmListSerializer):
 async def film_search(query: str,
                       page_number: int = Query(1, gt=0),
                       page_size: int = Query(100, gt=0),
-                      sort: Optional[str] = None,
+                      sort: OptStrType = None,
                       film_service: FilmService = Depends(get_film_service)) -> list[FilmListSerializer]:
     '''Метод для поиска подходящих по названию фильмов
     :param query: строка, по которой производится полнотекстовый поиск
@@ -85,8 +86,8 @@ async def film_details(film_id: str, film_service: FilmService = Depends(get_fil
 @router.get('', response_model=list[FilmListSerializer])
 async def film_list(page_number: int = Query(1, gt=0),
                     page_size: int = Query(100, gt=0),
-                    sort: Optional[str] = None,
-                    genre: Optional[str] = None,
+                    sort: OptStrType = None,
+                    genre: OptStrType = None,
                     film_service: FilmService = Depends(get_film_service)) -> list[FilmListSerializer]:
     """
     Метод возвращает сериализованный список фильмов, с опциональной фильтрацией по жанру.

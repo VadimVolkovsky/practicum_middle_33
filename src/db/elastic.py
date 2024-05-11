@@ -1,12 +1,9 @@
 from enum import Enum
-from typing import Optional
 
 from elasticsearch import AsyncElasticsearch
-from models.film import Film
-from models.genre import Genre
-from models.person import Person
+from models.models import Film, Genre, Person
 
-es: Optional[AsyncElasticsearch] = None
+es: AsyncElasticsearch | None = None
 
 
 async def get_elastic() -> AsyncElasticsearch:

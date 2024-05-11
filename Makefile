@@ -1,4 +1,3 @@
-#DOCKER_COMPOSE:=docker-compose -f docker-compose.override.yml
 DOCKER_COMPOSE:=docker-compose
 EXEC_CORE:=$(DOCKER_COMPOSE) exec api
 

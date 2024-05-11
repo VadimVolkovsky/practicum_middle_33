@@ -1,5 +1,4 @@
 from http import HTTPStatus
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -20,7 +19,7 @@ class PersonSerializer(BaseModel):
     """Модель для отображения информации о персонаже с учетом его ролей в фильмах"""
     id: str
     name: str = Field(..., alias='full_name')
-    films: Optional[list[PersonFilmsRoles]]
+    films: list[PersonFilmsRoles] | None = None
 
     class Config:
         populate_by_name = True
@@ -30,7 +29,7 @@ class PersonFilmsSerializer(BaseModel):
     """Модель для отображения фильмов, в которых принял участие персонаж"""
     id: str
     title: str
-    imdb_rating: Optional[float]
+    imdb_rating: float | None = None
 
 
 @router.get('/search', response_model=list[PersonSerializer])
