@@ -153,19 +153,21 @@ class ElasticDataGenerator:
         for film in film_data:
             for genre in film['_source']['genre']:
                 genre_obj = GenreSchema(**genre)
-                if genre_obj not in self.items:
+                if genre_obj not in items:
                     items.append(genre_obj)
         self.items = items
 
     def _get_persons_from_movies(self):
         """"""
+        items = []
         film_data = scan(self.elastic, index='movies', query={"query": {"match_all": {}}})
         for film in film_data:
             for roles, role in ROLES.items():
                 for person in film['_source'][roles]:
                     person_obj = PersonSchema(**person)
-                    if person_obj not in self.items:
-                        self.items.append(person_obj)
+                    if person_obj not in items:
+                        items.append(person_obj)
+        self.items = items
 
     def _load_data_to_elastic(self):
         """Загрузка данных в эластик"""
