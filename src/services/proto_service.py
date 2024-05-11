@@ -1,15 +1,12 @@
 import json
 from http import HTTPStatus
 from fastapi import HTTPException
-from typing import Optional
 
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from pydantic import BaseModel
 from redis.asyncio import Redis
 
-from models.film import Film
-from models.genre import Genre
-from models.person import Person
+from models.models import Film, Genre, Person
 
 CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
 
@@ -19,7 +16,7 @@ class ProtoService:
         self.redis = redis
         self.elastic = elastic
 
-    async def get_by_id(self, obj_id: str, index_dict: dict[str, BaseModel | str]) -> Optional[Film | Genre | Person]:
+    async def get_by_id(self, obj_id: str, index_dict: dict[str, BaseModel | str]) -> Film | Genre | Person | None:
         """
         Метод возвращает объект по id.
         В случае отсутствия объекта с указанным id - возвращает None
@@ -39,7 +36,8 @@ class ProtoService:
 
         return instance
 
-    async def _get_instance_from_elastic(self, obj_id: str, index_name: str, index_model: BaseModel) -> Optional[Film]:
+    # TODO fix return typing
+    async def _get_instance_from_elastic(self, obj_id: str, index_name: str, index_model: BaseModel) -> Film | None:
         """
         Вспомогательный метод для получения объекта из ElasticSearch по его id.
         В случае отсутствия подходящего объекта - возвращает None.
@@ -58,7 +56,7 @@ class ProtoService:
     async def _get_obj_from_cache(
             self, obj_id: str,
             index_model: Film | Genre | Person
-    ) -> Optional[Film | Genre | Person]:
+    ) -> Film | Genre | Person | None:
         """
         Получаем данные об объекте из кэша. Если объекта в кэше нет - возвращаем None
         """
@@ -81,7 +79,7 @@ class ProtoService:
     async def _get_objs_from_cache(
             self, parameters: str,
             model: Film | Genre | Person
-    ) -> Optional[list[Film | Genre | Person]]:
+    ) -> list[Film | Genre | Person] | None:
         """Получаем объекты из кэша. Если объектов в кэше нет - возвращаем None"""
         data = await self.redis.get(parameters)
         if not data:

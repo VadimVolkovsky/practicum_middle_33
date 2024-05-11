@@ -1,4 +1,4 @@
-DOCKER_COMPOSE:=docker-compose -f docker-compose_dev.yml
+DOCKER_COMPOSE:=docker-compose
 EXEC_CORE:=$(DOCKER_COMPOSE) exec api
 
 
