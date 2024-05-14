@@ -76,18 +76,18 @@ elastic_film_index_schema = {
 
 
 class TestSettings(BaseSettings):
-    # es_host: str = Field('elasticsearch:9200', env='ELASTIC_HOST')
+    es_host: str = Field('elasticsearch:9200', env='ELASTIC_HOST')
     es_index: str = 'movies'
     es_id_field: str = 'test_es_id'  # какое это поле в эластике
     es_index_mapping: dict = elastic_film_index_schema
 
-    # redis_host: str = 'redis'
-    # service_url: str = 'http://api:8000'
+    redis_host: str = 'redis'
+    service_url: str = 'http://api:8000'
 
     # для локального дебага тестов
-    es_host: str = Field('127.0.0.1:9200', env='ELASTIC_HOST')
-    redis_host: str = '127.0.0.1'
-    service_url: str = 'http://127.0.0.1:8000'
+    # es_host: str = Field('127.0.0.1:9200', env='ELASTIC_HOST')
+    # redis_host: str = '127.0.0.1'
+    # service_url: str = 'http://127.0.0.1:8000'
 
     redis_port: int = 6379
 

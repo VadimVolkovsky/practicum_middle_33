@@ -21,6 +21,12 @@ class AppSettings(BaseSettings):
     elastic_host: str = Field(default='elasticsearch')
     elastic_port: int = Field(default=9200)
 
+    # local run app for debug
+    # redis_host: str = Field(default='127.0.0.1')
+    # redis_port: int = Field(default=6379)
+    # elastic_host: str = Field(default='127.0.0.1')
+    # elastic_port: int = Field(default=9200)
+
     class Config:
         env_file = '.env'
 
