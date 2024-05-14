@@ -1,12 +1,11 @@
 import time
 
 from elasticsearch import Elasticsearch
-# from core.config import app_settings
-
+from tests.functional.settings import test_settings
 
 if __name__ == '__main__':
     es_client = Elasticsearch(
-        hosts='elasticsearch:9200',  # TODO вынести в окружение
+        hosts=test_settings.es_host,
         validate_cert=False,
         use_ssl=False
     )
