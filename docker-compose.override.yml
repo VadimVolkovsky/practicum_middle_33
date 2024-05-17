@@ -1,7 +1,12 @@
+x-default-network: &practicum_network
+  network_mode: bridge
+
+
 version: '3.4'
 services:
 
   api:
+    <<: *practicum_network
     image: async_api_image
     build:
       context: .
@@ -22,6 +27,7 @@ services:
     container_name: 'sprint_4_api'
 
   redis:
+    <<: *practicum_network
     image: redis:latest
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -34,6 +40,7 @@ services:
     container_name: 'sprint_4_redis'
 
   elasticsearch:
+    <<: *practicum_network
     image: elasticsearch:8.13.0
     healthcheck:
       test: curl -s http://elasticsearch:9200 >/dev/null || exit 1
@@ -51,4 +58,5 @@ services:
     container_name: 'sprint_4_elasticsearch'
 
   nginx:
+    <<: *practicum_network
     entrypoint: ["echo", "Service nginx disabled in dev mode"]
