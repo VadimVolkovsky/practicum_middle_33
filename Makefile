@@ -30,3 +30,6 @@ flake8:
 
 generate_data:
 	docker exec -it sprint_4_api python es_data_generation.py
+
+make test:
+	docker-compose -f docker-compose_tests.yml up
