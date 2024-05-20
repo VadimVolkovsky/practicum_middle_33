@@ -1,10 +1,13 @@
+from time import sleep
+
 import pytest
 from elasticsearch import AsyncElasticsearch, helpers
 
 from tests.functional.settings import test_settings
 
 
-@pytest.fixture(scope='session')
+# @pytest.fixture(scope='session')  # TODO  не выпоняются все тесты сразу т.к. закрывается евент луп после первого теста
+@pytest.fixture
 async def es_client():
     client = AsyncElasticsearch(
         hosts=test_settings.es_host,
@@ -37,4 +40,15 @@ async def _load_data_to_elastic(es_client, es_index, data):
     updated, errors = await helpers.async_bulk(es_client, bulk_data)
     if errors:
         raise Exception('Ошибка записи данных в Elasticsearch')
+    sleep(3)  # для полной загрузки данных в эластик
     return updated
+
+
+@pytest.fixture
+async def es_create_index(es_client: AsyncElasticsearch):
+    async def inner(es_index, es_index_schema):
+        if await es_client.indices.exists(index=es_index):
+            await es_client.indices.delete(index=es_index)
+        await es_client.indices.create(index=es_index, body=es_index_schema)
+    sleep(5)  # для полного создания индекса в эластике
+    return inner
