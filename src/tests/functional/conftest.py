@@ -40,7 +40,7 @@ async def _load_data_to_elastic(es_client, es_index, data):
     updated, errors = await helpers.async_bulk(es_client, bulk_data)
     if errors:
         raise Exception('Ошибка записи данных в Elasticsearch')
-    sleep(3)  # для полной загрузки данных в эластик
+    sleep(2)  # для полной загрузки данных в эластик
     return updated
 
 
@@ -50,5 +50,5 @@ async def es_create_index(es_client: AsyncElasticsearch):
         if await es_client.indices.exists(index=es_index):
             await es_client.indices.delete(index=es_index)
         await es_client.indices.create(index=es_index, body=es_index_schema)
-    sleep(5)  # для полного создания индекса в эластике
+    sleep(2)  # для полного создания индекса в эластике
     return inner
