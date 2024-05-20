@@ -1,3 +1,5 @@
+import logging
+import os
 from datetime import datetime
 from http import HTTPStatus
 
@@ -11,7 +13,8 @@ from services.utils import validation_index_model_fiield
 
 
 router = APIRouter()
-
+logger = logging.getLogger(os.path.basename(__file__))
+logger.setLevel(logging.INFO)
 
 class FilmListSerializer(BaseModel):
     '''модель для возврата списка фильмов из API'''

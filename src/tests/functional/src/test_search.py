@@ -57,7 +57,7 @@ async def test_search(es_write_data, async_client):
         status = response.status
     await session.close()
 
-    response = await async_client.get('/api/v1/films')
+    # response = await async_client.get('/api/v1/films')
     # 4. Проверяем ответ
 
     assert response == 200

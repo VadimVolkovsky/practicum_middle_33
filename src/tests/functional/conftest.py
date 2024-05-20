@@ -39,7 +39,7 @@ async def es_write_data(es_client: AsyncElasticsearch, get_es_bulk_query):
 
         bulk_query = await get_es_bulk_query(data)
         # response = await es_client.bulk(bulk_query, refresh=True)
-        response , errors = await async_bulk(client=es_client, actions=bulk_query)
+        response , errors = await async_bulk(client=es_client, actions=bulk_query, refresh=True)
 
         if errors:
             raise Exception('Ошибка записи данных в Elasticsearch')
