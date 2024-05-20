@@ -29,7 +29,6 @@ elastic_film_index_schema = {
         "properties": {
             "id": {"type": "keyword"},
             "imdb_rating": {"type": "float"},
-            "genres": {"type": "keyword"},
             "title": {
                 "type": "text",
                 "analyzer": "ru_en",

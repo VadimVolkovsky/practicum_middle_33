@@ -6,6 +6,7 @@ COPY ./requirements.txt /app/requirements.txt
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+ENV PYTHONPATH /app/src
 
 RUN  pip install --upgrade pip \
      && pip install -r /app/requirements.txt
