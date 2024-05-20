@@ -1,4 +1,8 @@
+import asyncio
+
+import aiohttp
 import pytest
+import pytest_asyncio
 from elasticsearch import AsyncElasticsearch
 from elasticsearch._async.helpers import async_bulk
 from httpx import AsyncClient
@@ -10,7 +14,7 @@ from tests.functional.settings import test_settings
 
 @pytest.fixture(scope='session')
 async def es_client():
-    client = AsyncElasticsearch(hosts=test_settings.es_host)
+    client = AsyncElasticsearch(hosts=test_settings.elastic_host)
     yield client
     await client.close()
 
@@ -35,7 +39,7 @@ async def es_write_data(es_client: AsyncElasticsearch, get_es_bulk_query):
     async def inner(data: list[dict]):
         if await es_client.indices.exists(index='movies'):
             await es_client.indices.delete(index='movies')
-        await es_client.indices.create(index='movies', body=elastic_film_index_schema)
+        await es_client.indices.create(index='movies', body=elastic_film_index_schema, refresh=True)
 
         bulk_query = await get_es_bulk_query(data)
         # response = await es_client.bulk(bulk_query, refresh=True)
@@ -51,6 +55,21 @@ async def es_write_data(es_client: AsyncElasticsearch, get_es_bulk_query):
 async def async_client():
     async with AsyncClient(app=app, base_url=test_settings.service_url) as client:
         yield client
+
+
+@pytest.fixture(scope='session')
+def event_loop():
+    loop = asyncio.get_event_loop_policy().new_event_loop()
+    yield loop
+    loop.close()
+
+
+@pytest_asyncio.fixture(scope='session')
+async def api_session(event_loop):
+    session = aiohttp.ClientSession()
+    yield session
+    await session.close()
+
 
 # @pytest.fixture
 # def make_get_request():

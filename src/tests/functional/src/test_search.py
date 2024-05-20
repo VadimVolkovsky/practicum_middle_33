@@ -10,7 +10,7 @@ from tests.functional.settings import test_settings
 
 
 @pytest.mark.asyncio
-async def test_search(es_write_data, async_client):
+async def test_search(es_write_data, async_client, api_session):
     # 1. Генерируем данные для ES
     es_data = [{
         'id': str(uuid.uuid4()),
@@ -47,15 +47,24 @@ async def test_search(es_write_data, async_client):
     #     raise Exception('Ошибка записи данных в Elasticsearch')
 
     # 3. Запрашиваем данные из ES по API
-
-    session = aiohttp.ClientSession()
     url = test_settings.service_url + '/api/v1/films'
-    # query_data = {'search': 'ef86b8ff-3c82-4d31-ad8e-'}
-    async with session.get(url) as response:
+    query_params = {'search': 'ef86b8ff-3c82-4d31-ad8e-'}
+
+    async with api_session.get(url, params=query_params) as response:
         body = await response.json()
-        headers = response.headers
         status = response.status
-    await session.close()
+
+
+    # session = aiohttp.ClientSession()
+    # url = test_settings.service_url + '/api/v1/films'
+    # # query_data = {'search': 'ef86b8ff-3c82-4d31-ad8e-'}
+    # async with session.get(url) as response:
+    #     body = await response.json()
+    #     headers = response.headers
+    #     status = response.status
+    # await session.close()
+
+
 
     # response = await async_client.get('/api/v1/films')
     # 4. Проверяем ответ

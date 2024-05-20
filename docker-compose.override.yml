@@ -41,7 +41,7 @@ services:
       timeout: 10s
       retries: 50
     volumes:
-      - ./src/db/elasticsearch/data/:/src/elasticsearch/data/
+      - ./src/db/elasticsearch/data/:/usr/share/elasticsearch/data
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
