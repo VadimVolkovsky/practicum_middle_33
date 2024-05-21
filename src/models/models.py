@@ -42,5 +42,5 @@ class Person(BaseNameModel):
     pass
 
 
-class Genre(BaseModel):
+class Genre(BaseNameModel):
     pass
