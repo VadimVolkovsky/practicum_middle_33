@@ -16,6 +16,7 @@ router = APIRouter()
 logger = logging.getLogger(os.path.basename(__file__))
 logger.setLevel(logging.INFO)
 
+
 class FilmListSerializer(BaseModel):
     '''модель для возврата списка фильмов из API'''
 
@@ -44,7 +45,6 @@ class FilmSerializer(FilmListSerializer):
     page_number - номер страницы
     page_size - размер станицы
     sort - поле, по которому ссортируется список
-    
     В ответе будет выведен список фильмов с id, названием и рейтингом.
     """)
 async def film_search(query: str,
@@ -72,7 +72,7 @@ async def film_search(query: str,
 
 @router.get('/{film_id}',
             response_model=FilmSerializer,
-            description="""Выполните запрос на поиск фильма по его id, 
+            description="""Выполните запрос на поиск фильма по его id,
             в ответе будет выведен подробная информация о фильме""")
 async def film_details(film_id: str, film_service: FilmService = Depends(get_film_service)) -> FilmSerializer:
     """
@@ -105,7 +105,6 @@ async def film_details(film_id: str, film_service: FilmService = Depends(get_fil
                 page_size: размер станицы
                 sort: поле, по которому ссортируется список
                 genre: жанр, по которому фильтруется список фильмов
-                
                 В ответе будет выведен сериализованный список фильмов, с опциональной фильтрацией по жанру.
                 В случае отсутствия подходяших фильмов - возвращает код ответа 404
                 """

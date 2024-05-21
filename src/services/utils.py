@@ -1,4 +1,10 @@
+import logging
+import os
+
 from constants import OptStrType
+
+
+logger = logging.getLogger(os.path.basename(__file__))
 
 
 async def _get_query_body(start_index: int,
@@ -42,57 +48,51 @@ async def _get_query_body(start_index: int,
     if person_id:
         if not body.get('query', None):
             body['query'] = {}
-
-        body = {
-            "query": {
-                'bool': {
-                    'should': [
-                        {"nested": {
-                            "path": "directors",
-                            "query": {
-                                "bool": {
-                                    "must": [
-                                        {"match": {"directors.id": person_id}},
-                                    ]
-                                }
+        body['query']['bool'] = {
+            'should': [
+                {
+                    "nested": {
+                        "path": "directors",
+                        "query": {
+                            "bool": {
+                                "must": [
+                                    {"match": {f"{field}.id": person_id}},
+                                ]
                             }
                         }
-                        },
-                        {"nested": {
-                            "path": "actors",
-                            "query": {
-                                "bool": {
-                                    "must": [
-                                        {"match": {"actors.id": person_id}},
-                                    ]
-                                }
-                            }
-                        }
-                        },
-                        {"nested": {
-                            "path": "writers",
-                            "query": {
-                                "bool": {
-                                    "must": [
-                                        {"match": {"writers.id": person_id}},
-                                    ]
-                                }
-                            }
-                        }
-                        }
-                    ]
+                    }
                 }
-            }
+                for field in ["directors", "actors", "writers"]
+            ],
         }
 
     if query:
         if not body.get('query', None):
             body['query'] = {}
 
-        body['query']['multi_match'] = {
-            'query': query,
-            'fields': ['title', 'name', 'actors.name', 'writers.name', 'directors.name', 'genre.name', 'description'],
-            'fuzziness': 'AUTO'
+        body['query']['bool'] = {
+            "should": [
+                *[
+                    {
+                        "nested": {
+                            "path": f"{field}",
+                            "query": {
+                                "multi_match": {
+                                    "query": query,
+                                    "fields": [f"{field}.name"]
+                                }
+                            }
+                        }
+                    }
+                    for field in ["directors", "actors", "writers", 'genre']
+                ],
+                {
+                    "multi_match": {
+                        "query": query,
+                        "fields": ['title', 'name', 'description']
+                    }
+                }
+            ]
         }
 
     return body

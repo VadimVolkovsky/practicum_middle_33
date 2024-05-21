@@ -17,4 +17,5 @@ class TestSettings(BaseSettings):
     class Config:
         env_file = '.env'
 
+
 test_settings = TestSettings()
