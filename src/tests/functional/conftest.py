@@ -1,13 +1,17 @@
 import asyncio
+from dataclasses import dataclass
 
+import aiohttp
 import pytest_asyncio
 from elasticsearch import AsyncElasticsearch
 from elasticsearch._async.helpers import async_bulk
 from httpx import AsyncClient
+from multidict import CIMultiDictProxy
 
+from db.elastic import Indexes
 from main import app
 from tests.functional.settings import test_settings
-from tests.functional.testdata import es_test_data
+from tests.functional.testdata import es_test_film_data
 
 
 @pytest_asyncio.fixture(scope='session')
@@ -67,33 +71,46 @@ def event_loop():
     loop.close()
 
 
-# @pytest_asyncio.fixture(scope='session')
-# async def api_session(event_loop):
-#     session = aiohttp.ClientSession()
-#     yield session
-#     await session.close()
-#
-#
-# @dataclass
-# class HTTPResponse:
-#     body: dict
-#     headers: CIMultiDictProxy[str]
-#     status: int
-#
-#
-# @pytest_asyncio.fixture
-# async def get_request(api_session):
-#     async def inner(url, query):
-#         async with api_session.get(url, params=query) as response:
-#             return HTTPResponse(
-#                 body=await response.json(),
-#                 headers=response.headers,
-#                 status=response.status,
-#             )
+@pytest_asyncio.fixture(scope='session')
+async def api_session(event_loop):
+    session = aiohttp.ClientSession()
+    yield session
+    await session.close()
+
+
+@dataclass
+class HTTPResponse:
+    body: dict
+    headers: CIMultiDictProxy[str]
+    status: int
+
+
+@pytest_asyncio.fixture
+async def get_request(api_session):
+    async def inner(url, params=None):
+        async with api_session.get(url, params=params) as response:
+            return HTTPResponse(
+                body=await response.json(),
+                headers=response.headers,
+                status=response.status,
+            )
+    return inner
+
 
 @pytest_asyncio.fixture
 async def get_es_data():
-    async def inner():
-        es_data = es_test_data.es_data
-        return es_data
+    async def inner(es_index):
+        if es_index == Indexes.movies.value.get('index_name'):
+            es_data = es_test_film_data.es_film_data
+            return es_data
     return inner
+
+
+# @pytest_asyncio.fixture
+# async def redis_pool():
+#     pool = await aioredis.create_redis_pool(
+#         (Setting.REDIS_HOST, Setting.REDIS_PORT), minsize=5, maxsize=10,
+#     )
+#     yield pool
+#     pool.close()
+#     await pool.wait_closed()

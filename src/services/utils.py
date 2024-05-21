@@ -36,11 +36,15 @@ async def _get_query_body(start_index: int,
         if not body.get('query', None):
             body['query'] = {}
 
-        search_query = {'term': {'genre.id': genre} for genre in genre}
+        # if isinstance(genre, list) and len(genre) > 1:
+        #     search_query = [{'term': {'genre.id': g}} for g in list(genre)]
+        # else:
+        #     search_query = {'term': {'genre.id': genre[0] if isinstance(genre, list) else genre}}
 
         body['query']['nested'] = {
             'path': 'genre',
-            'query': search_query,
+            # 'query': {*search_query} if isinstance(search_query, list) else **search_query,
+            'query': {'term': {'genre.id': genre}},
             'inner_hits': {
             }
         }
@@ -98,7 +102,7 @@ async def _get_query_body(start_index: int,
     return body
 
 
-async def validation_index_model_fiield(sort_field: OptStrType, index_model) -> None:
+async def validation_index_model_field(sort_field: OptStrType, index_model) -> None:
     """Проверяет, что указанное поле подходит для сортировки"""
     if index_model and sort_field and sort_field not in index_model.__fields__.keys():
         return None

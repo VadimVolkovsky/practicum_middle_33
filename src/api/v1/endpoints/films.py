@@ -1,5 +1,6 @@
 import logging
 import os
+import random
 from datetime import datetime
 from http import HTTPStatus
 
@@ -9,7 +10,7 @@ from pydantic import BaseModel
 from constants import ListDictType, OptStrType
 from db.elastic import Indexes
 from services.film import FilmService, get_film_service
-from services.utils import validation_index_model_fiield
+from services.utils import validation_index_model_field
 
 
 router = APIRouter()
@@ -60,7 +61,7 @@ async def film_search(query: str,
 
     start_index = (page_number - 1) * page_size
     index_model = Indexes.movies.value.get('index_model')
-    sort = await validation_index_model_fiield(sort, index_model)
+    sort = await validation_index_model_field(sort, index_model)
 
     film_list = await film_service.get_list_film(start_index, page_size, sort=sort, query=query)
 
@@ -87,8 +88,11 @@ async def film_details(film_id: str, film_service: FilmService = Depends(get_fil
         if not film:
             raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='film not found')
 
-        genres = [genre['id'] for genre in film.genre]
-        recommended_film_list = await film_service.get_list_film(start_index=1, page_size=3, sort='-imdb_rating',
+        # TODO add several genres
+
+        # genres = [genre['id'] for genre in film.genre]
+        genres = random.choice([genre['id'] for genre in film.genre])
+        recommended_film_list = await film_service.get_list_film(start_index=0, page_size=3, sort='-imdb_rating',
                                                                  genre=genres)
         return FilmSerializer(
             recommended_films=[FilmListSerializer(**dict(film)) for film in recommended_film_list],
@@ -123,7 +127,7 @@ async def film_list(page_number: int = Query(1, gt=0),
     :param genre: жанр, по которому фильтруется список фильмов'''
     """
     index_model = Indexes.movies.value.get('index_model')
-    sort = await validation_index_model_fiield(sort, index_model)
+    sort = await validation_index_model_field(sort, index_model)
     start_index = (page_number - 1) * page_size
 
     film_list = await film_service.get_list_film(start_index, page_size, sort, genre)

@@ -1,4 +1,4 @@
-es_data = [
+es_film_data = [
     {
         "id": "5ffeb144-fbf1-4658-88b3-2355465778ed",
         "imdb_rating": 9.1,
