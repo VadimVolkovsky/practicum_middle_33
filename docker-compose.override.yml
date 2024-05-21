@@ -1,12 +1,7 @@
-x-default-network: &practicum_network
-  network_mode: bridge
-
-
 version: '3.4'
 services:
 
   api:
-    <<: *practicum_network
     image: async_api_image
     build:
       context: .
@@ -24,10 +19,11 @@ services:
     depends_on:
       - redis
       - elasticsearch
-    container_name: 'sprint_4_api'
+    networks:
+      - default
+    container_name: 'middle_practicum_api'
 
   redis:
-    <<: *practicum_network
     image: redis:latest
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -37,10 +33,11 @@ services:
       - REDIS_PORT=6379
     ports:
       - 6380:6379
-    container_name: 'sprint_4_redis'
+    networks:
+      - default
+    container_name: 'middle_practicum_redis'
 
   elasticsearch:
-    <<: *practicum_network
     image: elasticsearch:8.13.0
     healthcheck:
       test: curl -s http://elasticsearch:9200 >/dev/null || exit 1
@@ -55,8 +52,16 @@ services:
       - ES_JAVA_OPTS=-Xms200m -Xmx200m
     ports:
       - 9200:9200
-    container_name: 'sprint_4_elasticsearch'
+    networks:
+      - default
+    container_name: 'middle_practicum_elasticsearch'
 
   nginx:
-    <<: *practicum_network
     entrypoint: ["echo", "Service nginx disabled in dev mode"]
+
+networks:
+  default:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.16.57.0/24
