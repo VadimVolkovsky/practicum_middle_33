@@ -38,17 +38,14 @@ films_data = [FilmWorkSchema(
 
 
 @pytest.mark.asyncio
-async def test_person_get_by_id_without_films(es_client, es_write_data, es_create_index):
+async def test_person_get_by_id_without_films(es_client, es_write_data):
     """
     Тест проверяет, что эндпоинт /api/v1/persons/{person_id}
      возвращает персонажа с пустым списком фильмов
     """
 
-    # создаем индекс
-    await es_create_index(es_persons_index, elastic_person_index_schema)
-
     # загружаем данные в эластик
-    await es_write_data(es_persons_index, persons_data)
+    await es_write_data(es_persons_index, persons_data, elastic_person_index_schema)
 
     session = aiohttp.ClientSession()
     person_id = persons_data[0].id
@@ -69,22 +66,15 @@ async def test_person_get_by_id_without_films(es_client, es_write_data, es_creat
 
 
 @pytest.mark.asyncio
-async def test_person_get_by_id_with_films(es_client, es_write_data, es_create_index):
+async def test_person_get_by_id_with_films(es_client, es_write_data):
     """
     Тест проверяет, что эндпоинт /api/v1/persons/{person_id}
      возвращает персонажа с перечислением его списка фильмов.
     """
 
-    # создаем индекс персон
-    await es_create_index(es_index=es_persons_index, es_index_schema=elastic_person_index_schema)
-
-    # создаем индекс фильмов
-    await es_create_index(es_index=es_films_index, es_index_schema=elastic_film_index_schema)
-
     # загружаем данные в эластик
-    await es_write_data(es_persons_index, persons_data)
-    await es_write_data(es_films_index, films_data)
-
+    await es_write_data(es_persons_index, persons_data, elastic_person_index_schema)
+    await es_write_data(es_films_index, films_data, elastic_film_index_schema)
 
     session = aiohttp.ClientSession()
     person_id = persons_data[0].id
@@ -108,21 +98,15 @@ async def test_person_get_by_id_with_films(es_client, es_write_data, es_create_i
 
 
 @pytest.mark.asyncio
-async def test_get_person_films_by_id(es_client, es_write_data, es_create_index):
+async def test_get_person_films_by_id(es_client, es_write_data):
     """
     Тест проверяет, что эндпоинт /api/v1/persons/{person_id}/film
      возвращает список фильмов персонажа
     """
 
-    # создаем индекс персон
-    await es_create_index(es_index=es_persons_index, es_index_schema=elastic_person_index_schema)
-
-    # создаем индекс фильмов
-    await es_create_index(es_index=es_films_index, es_index_schema=elastic_film_index_schema)
-
     # загружаем данные в эластик
-    await es_write_data(es_persons_index, persons_data)
-    await es_write_data(es_films_index, films_data)
+    await es_write_data(es_persons_index, persons_data, elastic_person_index_schema)
+    await es_write_data(es_films_index, films_data, elastic_film_index_schema)
 
     session = aiohttp.ClientSession()
     person_id = persons_data[0].id
@@ -143,27 +127,21 @@ async def test_get_person_films_by_id(es_client, es_write_data, es_create_index)
 
 
 @pytest.mark.asyncio
-async def test_search_person(es_client, es_write_data, es_create_index):
+async def test_search_person(es_client, es_write_data):
     """
     Тест проверяет, что эндпоинт /api/v1/persons/search
     находит персонажа по имени и возвращает список его фильмов
     """
 
-    # создаем индекс персон
-    await es_create_index(es_index=es_persons_index, es_index_schema=elastic_person_index_schema)
-
-    # создаем индекс фильмов
-    await es_create_index(es_index=es_films_index, es_index_schema=elastic_film_index_schema)
-
     # загружаем данные в эластик
-    await es_write_data(es_persons_index, persons_data)
-    await es_write_data(es_films_index, films_data)
+    await es_write_data(es_persons_index, persons_data, elastic_person_index_schema)
+    await es_write_data(es_films_index, films_data, elastic_film_index_schema)
 
     session = aiohttp.ClientSession()
     person_id = persons_data[0].id
     person_name = persons_data[0].name
     person_role = persons_data[0].role
-    url = test_settings.service_url + f'/api/v1/persons/search'
+    url = test_settings.service_url + '/api/v1/persons/search'
     query_data = {'query': person_name}
 
     async with session.get(url, params=query_data) as response:
@@ -178,7 +156,5 @@ async def test_search_person(es_client, es_write_data, es_create_index):
     assert len(body[0]['films']) == 5
     assert body[0]['films'][0]['id'] == films_data[0].id
     assert body[0]['films'][0]['roles'] == [person_role]
-
-
 
 # TODO вынести генерацию тестовых данных в аналог SetUp
