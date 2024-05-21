@@ -29,7 +29,7 @@ flake8:
 	$(EXEC_CORE) flake8
 
 generate_data:
-	docker exec -it sprint_4_api python es_data_generation.py
+	docker exec -it middle_practicum_api python es_data_generation.py
 
 debug_tests:
 	$(DOCKER_COMPOSE) -f docker-compose_tests.yml up
