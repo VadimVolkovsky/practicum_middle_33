@@ -14,18 +14,16 @@ from tests.functional.settings import test_settings
     ]
 )
 @pytest.mark.asyncio
-async def test_get_film_detail(get_es_data, es_write_data, film_id, expected_answer) -> None:
+async def test_get_film_detail(get_es_data, es_write_data, film_id, expected_answer, get_request) -> None:
     es_index = Indexes.movies.value.get('index_name')
     es_film_data = await get_es_data(es_index)
     await es_write_data(es_index=es_index, data=es_film_data, es_index_schema=elastic_film_index_schema)
 
     url = test_settings.service_url + f'/api/v1/films/{film_id}'
 
-    session = aiohttp.ClientSession()
-    async with session.get(url) as response:
-        body = await response.json()
-        status = response.status
-    await session.close()
+    response = await get_request(url)
+    status = response.status
+    body = response.body
 
     assert status == expected_answer['status']
 
@@ -59,13 +57,15 @@ async def test_get_film_list(get_es_data, es_write_data, expected_answer, query_
     query_params = query_data
 
     response = await get_request(url, params=query_params)
+    status = response.status
+    body = response.body
 
-    assert response.status == expected_answer['status']
+    assert status == expected_answer['status']
 
-    if response.status == 200:
-        assert len(response.body) == expected_answer['count']
+    if status == 200:
+        assert len(body) == expected_answer['count']
 
     if query_data.get('sort', None):
         assert bool(
-            response.body[0]['imdb_rating'] >= response.body[2]['imdb_rating']
+            body[0]['imdb_rating'] >= body[1]['imdb_rating']
         ) is expected_answer['rating_higher']

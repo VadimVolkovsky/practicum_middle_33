@@ -1,7 +1,6 @@
 import logging
 import os
 
-import aiohttp
 import pytest
 
 from db.elastic import Indexes
@@ -24,29 +23,18 @@ logger = logging.getLogger(os.path.basename(__file__))
     ]
 )
 @pytest.mark.asyncio
-async def test_search(es_write_data, get_es_data, query_data, expected_answer):
-    # 1. Генерируем данные для ES
+async def test_search(es_write_data, get_es_data, query_data, expected_answer, get_request):
     es_index = Indexes.movies.value.get('index_name')
     es_data = await get_es_data(es_index)
 
-    # 2. Загружаем данные в ES
     await es_write_data(es_index=es_index, data=es_data, es_index_schema=elastic_film_index_schema)
 
-    # 3. Запрашиваем данные из ES по API
     url = test_settings.service_url + '/api/v1/films/search'
     query_params = query_data
 
-    session = aiohttp.ClientSession()
-    async with session.get(url, params=query_params) as response:
-        body = await response.json()
-        status = response.status
-    await session.close()
+    response = await get_request(url, params=query_params)
+    status = response.status
+    body = response.body
 
-    # async with api_session.get(url, params=query_params) as response:
-    #     body = await response.json()
-    #     status = response.status
-    # response = await get_request(url, query_params)
-
-    # 4. Проверяем ответ
     assert status == expected_answer['status']
     assert len(body) == expected_answer['count']
