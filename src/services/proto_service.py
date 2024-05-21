@@ -1,12 +1,14 @@
 import json
 from http import HTTPStatus
-from fastapi import HTTPException
 
+import backoff
 from elasticsearch import AsyncElasticsearch, NotFoundError
+from fastapi import HTTPException
 from pydantic import BaseModel
 from redis.asyncio import Redis
 
 from models.models import Film, Genre, Person
+from services.exceptions import CONNECTION_EXCEPTIONS
 
 CACHE_EXPIRE_IN_SECONDS = 60 * 5  # 5 минут
 
@@ -16,6 +18,7 @@ class ProtoService:
         self.redis = redis
         self.elastic = elastic
 
+    # @backoff.on_exception(backoff.expo, CONNECTION_EXCEPTIONS)
     async def get_by_id(
             self, obj_id: str,
             index_dict: dict[str, BaseModel | str]
@@ -39,6 +42,7 @@ class ProtoService:
 
         return instance
 
+    @backoff.on_exception(backoff.expo, CONNECTION_EXCEPTIONS)
     async def _get_instance_from_elastic(
             self, obj_id: str,
             index_name: str,
@@ -59,6 +63,7 @@ class ProtoService:
     def get_params_to_cache(**kwargs):
         return str(kwargs)
 
+    @backoff.on_exception(backoff.expo, CONNECTION_EXCEPTIONS)
     async def _get_obj_from_cache(
             self, obj_id: str,
             index_model: BaseModel
@@ -75,6 +80,7 @@ class ProtoService:
         obj = index_model.parse_raw(data)
         return obj
 
+    @backoff.on_exception(backoff.expo, CONNECTION_EXCEPTIONS)
     async def _put_obj_to_cache(self, obj: Film | Genre | Person):
         """
         Сохраняем данные об объекте в кэш, сериализуя модель через pydantic в формат json.
@@ -82,6 +88,7 @@ class ProtoService:
         key_for_redis = str(dict(name="Returning one object", id=obj.id, class_name=obj.__class__))
         await self.redis.set(key_for_redis, obj.json(), CACHE_EXPIRE_IN_SECONDS)
 
+    @backoff.on_exception(backoff.expo, CONNECTION_EXCEPTIONS)
     async def _get_objs_from_cache(
             self, parameters: str,
             model: Film | Genre | Person
@@ -94,6 +101,7 @@ class ProtoService:
         objs = [model.parse_raw(json.dumps(obj)) for obj in json.loads(data)]
         return objs
 
+    @backoff.on_exception(backoff.expo, CONNECTION_EXCEPTIONS)
     async def _put_objs_to_cache(self, parameters: str, objs: list[Film | Genre | Person]):
         """
         Сохраняем данные об объектах в кэш, сериализуя модель через pydantic в формат json.
