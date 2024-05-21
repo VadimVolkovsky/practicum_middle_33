@@ -50,25 +50,25 @@ class PersonService(ProtoService):
         return films_data
 
     @staticmethod
-    async def filter_films_by_person_with_role(films: list[Film], person: Person) -> list[dict[str, str]]:
+    async def filter_films_by_person_with_role(films: list[Film] | list, person: Person) -> list[dict[str, str]]:
         """
         Фильтрует список фильмов в которых персонаж принимал участие,
-        с указанием его ролей
+        с указанием его ролей. Возвращает пустой список, если персонаж еще не принимал участие в фильмах.
         """
         films_by_person = []
+        if films:
+            for film in films:
+                film_with_roles = {'id': film.id, 'roles': []}
 
-        for film in films:
-            film_with_roles = {'id': film.id, 'roles': []}
+                for roles, role in ROLES.items():
 
-            for roles, role in ROLES.items():
+                    for role_obj in getattr(film, roles):
 
-                for role_obj in getattr(film, roles):
+                        if role_obj['id'] == person.id:
+                            film_with_roles['roles'].append(role)
+                            break
 
-                    if role_obj['id'] == person.id:
-                        film_with_roles['roles'].append(role)
-                        break
-
-            films_by_person.append(film_with_roles)
+                films_by_person.append(film_with_roles)
         return films_by_person
 
     async def get_list_persons(self,
