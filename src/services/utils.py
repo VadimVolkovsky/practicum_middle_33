@@ -52,51 +52,108 @@ async def _get_query_body(start_index: int,
     if person_id:
         if not body.get('query', None):
             body['query'] = {}
-        body['query']['bool'] = {
-            'should': [
-                {
-                    "nested": {
-                        "path": "directors",
-                        "query": {
-                            "bool": {
-                                "must": [
-                                    {"match": {f"{field}.id": person_id}},
-                                ]
+
+        body = {
+            "query": {
+                'bool': {
+                    'should': [
+                        {"nested": {
+                            "path": "directors",
+                            "query": {
+                                "bool": {
+                                    "must": [
+                                        {"match": {"directors.id": person_id}},
+                                    ]
+                                }
                             }
                         }
-                    }
+                        },
+                        {"nested": {
+                            "path": "actors",
+                            "query": {
+                                "bool": {
+                                    "must": [
+                                        {"match": {"actors.id": person_id}},
+                                    ]
+                                }
+                            }
+                        }
+                        },
+                        {"nested": {
+                            "path": "writers",
+                            "query": {
+                                "bool": {
+                                    "must": [
+                                        {"match": {"writers.id": person_id}},
+                                    ]
+                                }
+                            }
+                        }
+                        }
+                    ]
                 }
-                for field in ["directors", "actors", "writers"]
-            ],
+            }
         }
+
+    # if person_id:  # TODO нужно доработать т.к. возвращает только первый фильм персонажа на эндпоинте /{person_id}/
+        # if not body.get('query', None):
+        #     body['query'] = {}
+        # body['query']['bool'] = {
+        #     'should': [
+        #         {
+        #             "nested": {
+        #                 "path": field,
+        #                 "query": {
+        #                     "bool": {
+        #                         "must": [
+        #                             {"match": {f"{field}.id": person_id}},
+        #                         ]
+        #                     }
+        #                 }
+        #             }
+        #         }
+        #         for field in ["directors", "actors", "writers"]
+        #     ],
+        # }
+
+
+    # if query:  # TODO нужно доработать. Возвращает код 500 для эндпоинта /{person_id}/film
+    #     if not body.get('query', None):
+    #         body['query'] = {}
+    #
+    #     body['query']['bool'] = {
+    #         "should": [
+    #             *[
+    #                 {
+    #                     "nested": {
+    #                         "path": f"{field}",
+    #                         "query": {
+    #                             "multi_match": {
+    #                                 "query": query,
+    #                                 "fields": [f"{field}.name"]
+    #                             }
+    #                         }
+    #                     }
+    #                 }
+    #                 for field in ["directors", "actors", "writers", 'genre']
+    #             ],
+    #             {
+    #                 "multi_match": {
+    #                     "query": query,
+    #                     "fields": ['title', 'name', 'description']
+    #                 }
+    #             }
+    #         ]
+    #     }
 
     if query:
         if not body.get('query', None):
             body['query'] = {}
 
-        body['query']['bool'] = {
-            "should": [
-                *[
-                    {
-                        "nested": {
-                            "path": f"{field}",
-                            "query": {
-                                "multi_match": {
-                                    "query": query,
-                                    "fields": [f"{field}.name"]
-                                }
-                            }
-                        }
-                    }
-                    for field in ["directors", "actors", "writers", 'genre']
-                ],
-                {
-                    "multi_match": {
-                        "query": query,
-                        "fields": ['title', 'name', 'description']
-                    }
-                }
-            ]
+        body['query']['multi_match'] = {
+            'query': query,
+            'fields': ['title', 'name', 'actors.name', 'writers.name', 'directors.name', 'genre.name', 'description'],
+            'fuzziness': 'AUTO'
         }
 
     return body
