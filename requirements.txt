@@ -14,3 +14,8 @@ isort==5.13.2
 Faker~=25.0.1
 python-dotenv==1.0.1
 pydantic-settings==2.2.1
+
+pytest==8.2.0
+pytest-asyncio==0.23.6
+pytest-aiohttp==1.0.5
+aiohttp~=3.9.5

@@ -15,13 +15,8 @@ async def test_genre_add(es_client, es_write_data):
     genres = ['Action', 'Western', 'Detective', 'Drama', 'Comedy', 'Melodrama', ]
     data = [GenreSchema(id=fake.uuid4(), name=name) for name in genres]
 
-    # создаем индекс
-    if await es_client.indices.exists(index=es_index):
-        await es_client.indices.delete(index=es_index)
-    await es_client.indices.create(index=es_index, body=elastic_genre_index_schema)
-
     # загружаем данные в эластик
-    await es_write_data(es_index, data)
+    await es_write_data(es_index, data, elastic_genre_index_schema)
 
     # получаем загруженные данные из эластика
     session = aiohttp.ClientSession()

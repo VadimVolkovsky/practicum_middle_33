@@ -31,5 +31,5 @@ flake8:
 generate_data:
 	docker exec -it middle_practicum_api python es_data_generation.py
 
-debug_tests:
+test:
 	$(DOCKER_COMPOSE) -f docker-compose_tests.yml up
