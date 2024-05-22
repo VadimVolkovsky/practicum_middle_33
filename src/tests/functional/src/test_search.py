@@ -14,7 +14,7 @@ logger = logging.getLogger(os.path.basename(__file__))
 @pytest.mark.parametrize(
     'query_data, expected_answer',
     [
-        ({'query': 'Repurpose'}, {'status': 200, 'count': 1}),
+        ({'query': 'Repurpose'}, {'status': 200, 'count': 1}),  # TODO обновить тестовые данные
         ({'query': 'Billy Montes'}, {'status': 200, 'count': 1}),
         ({'query': 'Melodrama'}, {'status': 200, 'count': 4}),
         ({'query': 'Detective', 'page_size': 4}, {'status': 200, 'count': 4}),
