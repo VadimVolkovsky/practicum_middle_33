@@ -11,7 +11,7 @@ from multidict import CIMultiDictProxy
 from db.elastic import Indexes
 from main import app
 from tests.functional.settings import test_settings
-from tests.functional.testdata import es_test_film_data
+from tests.functional.testdata import es_test_film_data, es_test_genres_data, es_test_persons_data
 
 
 @pytest_asyncio.fixture(scope='session')
@@ -100,9 +100,16 @@ async def get_request(api_session):
 @pytest_asyncio.fixture
 async def get_es_data():
     async def inner(es_index):
-        if es_index == Indexes.movies.value.get('index_name'):
-            es_data = es_test_film_data.es_film_data
-            return es_data
+        match es_index:
+            case 'movies':
+                es_data = es_test_film_data.es_film_data
+            case 'genres':
+                es_data = es_test_genres_data.es_genres_data
+            case 'persons':
+                es_data = es_test_persons_data.es_persons_data
+            case _:
+                raise Exception(f'Не найдены тестовые данные для индекса {es_index}')
+        return es_data
     return inner
 
 
