@@ -9,7 +9,7 @@ from tests.functional.settings import test_settings
 @pytest.mark.parametrize(
     'film_id, expected_answer',
     [
-        ('3ee69719-dca0-4bc0-8cba-ad0d77fdf52d', {'status': 200, 'count_recommended': 3}),
+        ('64afe9bc-6ea9-4843-8c5a-a76007614b45', {'status': 200, 'count_recommended': 3}),
         ('0000000', {'status': 404}),
     ]
 )
@@ -41,7 +41,7 @@ async def test_get_film_detail(get_es_data, es_write_data, film_id, expected_ans
         ({'page_number': 2, 'page_size': 5}, {'status': 200, 'count': 5}),
         ({'page_number': 1}, {'status': 200, 'count': 10}),
         ({'page_number': 1, 'sort': 'imdb_rating'}, {'status': 200, 'count': 10, 'rating_higher': False}),
-        ({'sort': '-imdb_rating', 'genre': '6f476c58-40e3-48a1-a10f-0f23e368fb66'}, {'status': 200, 'count': 8,
+        ({'sort': '-imdb_rating', 'genre': 'cfaec163-d52b-4cc9-a791-35ccfdb7f7e0'}, {'status': 200, 'count': 5,
                                                                                      'rating_higher': True}),
         ({'page_number': '-1'}, {'status': 422}),
         ({'genre': 'Unknown'}, {'status': 404}),
