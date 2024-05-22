@@ -10,8 +10,8 @@ class TestSettings(BaseSettings):
     redis_port: int = 6379
 
     # Настройки для локального дебага тестов (без контейнера)
-    # es_host: str = Field('127.0.0.1:9200', env='ELASTIC_HOST')
-    # service_url: str = 'http://127.0.0.1:8000'
+    # elastic_host: str = Field('127.0.0.1:9200', env='ELASTIC_HOST')
+    # service_url: str = 'http://127.0.0.1:8001'
     # redis_host: str = '127.0.0.1'
     # redis_port: int = 6380
 

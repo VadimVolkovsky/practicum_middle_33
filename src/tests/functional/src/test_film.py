@@ -14,7 +14,7 @@ from tests.functional.settings import test_settings
     ]
 )
 @pytest.mark.asyncio
-async def test_get_film_detail(get_es_data, es_write_data, film_id, expected_answer, get_request) -> None:
+async def test_get_film_detail(get_es_data, es_write_data, film_id, expected_answer, get_request, redis_client):
     es_index = Indexes.movies.value.get('index_name')
     es_film_data = await get_es_data(es_index)
     await es_write_data(es_index=es_index, data=es_film_data, es_index_schema=elastic_film_index_schema)
@@ -32,6 +32,12 @@ async def test_get_film_detail(get_es_data, es_write_data, film_id, expected_ans
         assert len(body['recommended_films']) == expected_answer['count_recommended']
         assert body['recommended_films'][0]['imdb_rating'] >= body['recommended_films'][1]['imdb_rating']
 
+    '''
+    помогите пожалуйста!!!!! не работает))))
+    '''
+
+    redis_data = await redis_client.get('3ee69719-dca0-4bc0-8cba-ad0d77fdf52d')
+    assert redis_data == response.body
 
 @pytest.mark.parametrize(
     'query_data, expected_answer',

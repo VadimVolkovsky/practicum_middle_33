@@ -56,7 +56,7 @@ async def _get_query_body(start_index: int,
             'should': [
                 {
                     "nested": {
-                        "path": "directors",
+                        "path": field,
                         "query": {
                             "bool": {
                                 "must": [

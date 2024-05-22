@@ -7,6 +7,7 @@ from elasticsearch import AsyncElasticsearch
 from elasticsearch._async.helpers import async_bulk
 from httpx import AsyncClient
 from multidict import CIMultiDictProxy
+from redis.asyncio import Redis, from_url
 
 from db.elastic import Indexes
 from main import app
@@ -106,11 +107,18 @@ async def get_es_data():
     return inner
 
 
-# @pytest_asyncio.fixture
-# async def redis_pool():
-#     pool = await aioredis.create_redis_pool(
-#         (Setting.REDIS_HOST, Setting.REDIS_PORT), minsize=5, maxsize=10,
+@pytest_asyncio.fixture(scope='session')
+async def redis_client(event_loop):
+    redis = await Redis(host=test_settings.redis_host, port=test_settings.redis_port)
+    yield redis
+    await redis.close()
+
+
+# @pytest_asyncio.fixture(scope="session")
+# async def redis_client(event_loop) -> Redis:
+#     host = f"{test_settings.redis_host}:{test_settings.redis_port}"
+#     redis = await from_url(
+#         host, max_connections=10, encoding="utf8", decode_responses=True
 #     )
-#     yield pool
-#     pool.close()
-#     await pool.wait_closed()
+#     yield redis
+#     await redis.aclose()
