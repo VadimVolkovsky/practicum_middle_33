@@ -19,7 +19,11 @@ services:
   tests:
     image: async_api_image
     depends_on:
+      - api
+      - redis
       - elasticsearch
+    env_file:
+      - ./.env
     entrypoint: >
       sh -c "pip install -r tests/functional/requirements.txt
       && python3 tests/functional/utils/wait_for_es.py

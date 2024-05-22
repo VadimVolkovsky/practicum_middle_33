@@ -99,6 +99,8 @@ class ProtoService:
         Сохраняем данные об объектах в кэш, сериализуя модель через pydantic в формат json.
         """
         value = '[' + ','.join([obj.json() for obj in objs]) + ']'
-        key_for_redis = str(dict(name="Returning a list of objects", class_name=objs[0].__class__, parameters=parameters))
+        key_for_redis = str(dict(name="Returning a list of objects",
+                                 class_name=objs[0].__class__,
+                                 parameters=parameters))
 
         await self.redis.set(key_for_redis, value, CACHE_EXPIRE_IN_SECONDS)
