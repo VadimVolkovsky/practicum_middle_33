@@ -10,7 +10,7 @@ fake = Faker()
 
 
 @pytest.mark.asyncio
-async def test_genre_add(es_client, es_write_data):
+async def test_genre_get_by_id(es_client, es_write_data):
     es_index = 'genres'
     genres = ['Action', 'Western', 'Detective', 'Drama', 'Comedy', 'Melodrama', ]
     data = [GenreSchema(id=fake.uuid4(), name=name) for name in genres]
