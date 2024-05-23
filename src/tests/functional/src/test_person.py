@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 import pytest
 from faker import Faker
 
@@ -17,8 +19,8 @@ roles = {
 @pytest.mark.parametrize(
     'person, expected_answer',
     [
-        ({'id': '79dcd2f3-97d0-46df-bdff-63c36775288f', 'name': 'Daniel Holden'}, {'status': 200}),
-        ({'id': '0000000', 'name': 'fake_person'}, {'status': 404}),
+        ({'id': '79dcd2f3-97d0-46df-bdff-63c36775288f', 'name': 'Daniel Holden'}, {'status': HTTPStatus.OK}),
+        ({'id': '0000000', 'name': 'fake_person'}, {'status': HTTPStatus.NOT_FOUND}),
     ]
 )
 @pytest.mark.asyncio
@@ -38,7 +40,7 @@ async def test_person_get_by_id_without_films(get_es_data, es_write_data, person
     body = response.body
 
     assert status == expected_answer['status']
-    if status == 200:
+    if status == HTTPStatus.OK:
         assert body['id'] == person['id']
         assert body['full_name'] == person['name']
         assert len(body['films']) == 0
@@ -47,7 +49,7 @@ async def test_person_get_by_id_without_films(get_es_data, es_write_data, person
 @pytest.mark.parametrize(
     'person, expected_answer',
     [
-        ({'id': '5bd7f73e-6648-4a4c-926a-13ec037c3fdf', 'name': 'David Martin'}, {'status': 200}),
+        ({'id': '5bd7f73e-6648-4a4c-926a-13ec037c3fdf', 'name': 'David Martin'}, {'status': HTTPStatus.OK}),
     ]
 )
 @pytest.mark.asyncio
@@ -70,7 +72,7 @@ async def test_person_get_by_id_with_films(get_es_data, es_write_data, person, e
     body = response.body
 
     assert status == expected_answer['status']
-    if status == 200:
+    if status == HTTPStatus.OK:
         assert body['id'] == person['id']
         assert body['full_name'] == person['name']
         assert len(body['films']) == 2
@@ -82,7 +84,7 @@ async def test_person_get_by_id_with_films(get_es_data, es_write_data, person, e
         ([
              {'id': '64afe9bc-6ea9-4843-8c5a-a76007614b45', 'title': 'Deploy Strategic Mindshare', 'imdb_rating': 4},
              {'id': '598baf06-d300-4567-8ab5-1b11079691cf', 'title': 'Implement Value-Added Users', 'imdb_rating': 7.8}
-         ], {'status': 200}),
+         ], {'status': HTTPStatus.OK}),
     ]
 )
 @pytest.mark.asyncio
@@ -105,7 +107,7 @@ async def test_get_person_films_by_id(get_es_data, es_write_data, person_films, 
     status = response.status
     body = response.body
 
-    assert status == 200
+    assert status == HTTPStatus.OK
     assert len(body) == 2
     for i in range(len(person_films)):
         assert body[i]['id'] == person_films[i]['id']
@@ -125,7 +127,7 @@ async def test_get_person_films_by_id(get_es_data, es_write_data, person_films, 
                         {'id': '598baf06-d300-4567-8ab5-1b11079691cf', 'roles': 'director'},
                     ],
                 },
-                {'status': 200}),
+                {'status': HTTPStatus.OK}),
     ]
 )
 @pytest.mark.asyncio
@@ -148,7 +150,7 @@ async def test_search_person(get_es_data, es_write_data, person, expected_answer
     status = response.status
     body = response.body
 
-    assert status == 200
+    assert status == HTTPStatus.OK
     assert body[0]['id'] == person['id']
     assert body[0]['full_name'] == person['full_name']
     assert len(body[0]['films']) == 2
