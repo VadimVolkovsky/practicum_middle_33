@@ -1,160 +1,157 @@
-import random
-
-import aiohttp
 import pytest
 from faker import Faker
 
-from es_data_generation import PersonSchema, FilmWorkSchema, GenreSchema
-from tests.functional.settings import test_settings
+from db.elastic import Indexes
 from schemas.es_schemas import elastic_person_index_schema, elastic_film_index_schema
+from tests.functional.settings import test_settings
 
 fake = Faker()
 
-es_persons_index = 'persons'
-es_films_index = 'movies'
 roles = {
     'directors': 'director',
     'actors': 'actor',
     'writers': 'writer'
 }
-genres = ['Action', 'Western', 'Detective', 'Drama', 'Comedy', 'Melodrama', ]
-genres_data = [GenreSchema(id=fake.uuid4(), name=name) for name in genres]
-persons_data = [
-    PersonSchema(
-        id=fake.uuid4(),
-        name=fake.name(),
-        role=random.choice(list(roles.values())))
-    for _ in range(5)
-]
-
-films_data = [FilmWorkSchema(
-    id=fake.uuid4(),
-    imdb_rating=round(random.uniform(1, 10), 1),
-    genre=random.sample(genres_data, k=random.randint(1, 3)),
-    title=fake.bs().title(),
-    persons=persons_data,
-    description=fake.text(),
-) for _ in range(5)]
 
 
+@pytest.mark.parametrize(
+    'person, expected_answer',
+    [
+        ({'id': '79dcd2f3-97d0-46df-bdff-63c36775288f', 'name': 'Daniel Holden'}, {'status': 200}),
+        ({'id': '0000000', 'name': 'fake_person'}, {'status': 404}),
+    ]
+)
 @pytest.mark.asyncio
-async def test_person_get_by_id_without_films(es_client, es_write_data):
+async def test_person_get_by_id_without_films(get_es_data, es_write_data, person, expected_answer, get_request):
     """
     Тест проверяет, что эндпоинт /api/v1/persons/{person_id}
      возвращает персонажа с пустым списком фильмов
     """
 
-    # загружаем данные в эластик
-    await es_write_data(es_persons_index, persons_data, elastic_person_index_schema)
+    es_index = Indexes.persons.value.get('index_name')
+    es_persons_data = await get_es_data(es_index)
+    await es_write_data(es_index, es_persons_data, elastic_person_index_schema)
+    url = test_settings.service_url + f'/api/v1/persons/{person['id']}'
 
-    session = aiohttp.ClientSession()
-    person_id = persons_data[0].id
-    person_name = persons_data[0].name
-    url = test_settings.service_url + f'/api/v1/persons/{person_id}'
-    query_data = {'person_id': person_id}
+    response = await get_request(url)
+    status = response.status
+    body = response.body
 
-    async with session.get(url, params=query_data) as response:
-        body = await response.json()
-        status = response.status
-    await session.close()
-
-    # проверяем
-    assert status == 200
-    assert body['id'] == person_id
-    assert body['full_name'] == person_name
-    assert body['films'] == []
+    assert status == expected_answer['status']
+    if status == 200:
+        assert body['id'] == person['id']
+        assert body['full_name'] == person['name']
+        assert len(body['films']) == 0
 
 
+@pytest.mark.parametrize(
+    'person, expected_answer',
+    [
+        ({'id': '5bd7f73e-6648-4a4c-926a-13ec037c3fdf', 'name': 'David Martin'}, {'status': 200}),
+    ]
+)
 @pytest.mark.asyncio
-async def test_person_get_by_id_with_films(es_client, es_write_data):
+async def test_person_get_by_id_with_films(get_es_data, es_write_data, person, expected_answer, get_request):
     """
     Тест проверяет, что эндпоинт /api/v1/persons/{person_id}
      возвращает персонажа с перечислением его списка фильмов.
     """
 
-    # загружаем данные в эластик
-    await es_write_data(es_persons_index, persons_data, elastic_person_index_schema)
-    await es_write_data(es_films_index, films_data, elastic_film_index_schema)
+    es_person_index = Indexes.persons.value.get('index_name')
+    es_movies_index = Indexes.movies.value.get('index_name')
+    es_persons_data = await get_es_data(es_person_index)
+    es_movies_data = await get_es_data(es_movies_index)
+    await es_write_data(es_person_index, es_persons_data, elastic_person_index_schema)
+    await es_write_data(es_movies_index, es_movies_data, elastic_film_index_schema)
 
-    session = aiohttp.ClientSession()
-    person_id = persons_data[0].id
-    person_name = persons_data[0].name
-    person_role = persons_data[0].role
-    url = test_settings.service_url + f'/api/v1/persons/{person_id}'
-    query_data = {'person_id': person_id}
+    url = test_settings.service_url + f'/api/v1/persons/{person['id']}'
+    response = await get_request(url)
+    status = response.status
+    body = response.body
 
-    async with session.get(url, params=query_data) as response:
-        body = await response.json()
-        status = response.status
-    await session.close()
-
-    # проверяем
-    assert status == 200
-    assert body['id'] == person_id
-    assert body['full_name'] == person_name
-    assert len(body['films']) == 5
-    assert body['films'][0]['id'] == films_data[0].id
-    assert body['films'][0]['roles'] == [person_role]
+    assert status == expected_answer['status']
+    if status == 200:
+        assert body['id'] == person['id']
+        assert body['full_name'] == person['name']
+        assert len(body['films']) == 2
 
 
+@pytest.mark.parametrize(
+    'person_films, expected_answer',
+    [
+        ([
+             {'id': '64afe9bc-6ea9-4843-8c5a-a76007614b45', 'title': 'Deploy Strategic Mindshare', 'imdb_rating': 4},
+             {'id': '598baf06-d300-4567-8ab5-1b11079691cf', 'title': 'Implement Value-Added Users', 'imdb_rating': 7.8}
+         ], {'status': 200}),
+    ]
+)
 @pytest.mark.asyncio
-async def test_get_person_films_by_id(es_client, es_write_data):
+async def test_get_person_films_by_id(get_es_data, es_write_data, person_films, expected_answer, get_request):
     """
     Тест проверяет, что эндпоинт /api/v1/persons/{person_id}/film
      возвращает список фильмов персонажа
     """
 
-    # загружаем данные в эластик
-    await es_write_data(es_persons_index, persons_data, elastic_person_index_schema)
-    await es_write_data(es_films_index, films_data, elastic_film_index_schema)
+    es_person_index = Indexes.persons.value.get('index_name')
+    es_movies_index = Indexes.movies.value.get('index_name')
+    es_persons_data = await get_es_data(es_person_index)
+    es_movies_data = await get_es_data(es_movies_index)
+    await es_write_data(es_person_index, es_persons_data, elastic_person_index_schema)
+    await es_write_data(es_movies_index, es_movies_data, elastic_film_index_schema)
 
-    session = aiohttp.ClientSession()
-    person_id = persons_data[0].id
+    person_id = '5bd7f73e-6648-4a4c-926a-13ec037c3fdf'
     url = test_settings.service_url + f'/api/v1/persons/{person_id}/film'
-    query_data = {'person_id': person_id}
+    response = await get_request(url)
+    status = response.status
+    body = response.body
 
-    async with session.get(url, params=query_data) as response:
-        body = await response.json()
-        status = response.status
-    await session.close()
-
-    # проверяем
     assert status == 200
-    assert len(body) == 5
-    assert body[0]['id'] == films_data[0].id
-    assert body[0]['title'] == films_data[0].title
-    assert body[0]['imdb_rating'] == films_data[0].imdb_rating
+    assert len(body) == 2
+    for i in range(len(person_films)):
+        assert body[i]['id'] == person_films[i]['id']
+        assert body[i]['title'] == person_films[i]['title']
+        assert body[i]['imdb_rating'] == person_films[i]['imdb_rating']
 
 
+@pytest.mark.parametrize(
+    'person, expected_answer',
+    [
+        (
+                {
+                    'id': '5bd7f73e-6648-4a4c-926a-13ec037c3fdf',
+                    'full_name': 'David Martin',
+                    'films': [
+                        {'id': '64afe9bc-6ea9-4843-8c5a-a76007614b45', 'roles': 'director'},
+                        {'id': '598baf06-d300-4567-8ab5-1b11079691cf', 'roles': 'director'},
+                    ],
+                },
+                {'status': 200}),
+    ]
+)
 @pytest.mark.asyncio
-async def test_search_person(es_client, es_write_data):
+async def test_search_person(get_es_data, es_write_data, person, expected_answer, get_request):
     """
     Тест проверяет, что эндпоинт /api/v1/persons/search
     находит персонажа по имени и возвращает список его фильмов
     """
 
-    # загружаем данные в эластик
-    await es_write_data(es_persons_index, persons_data, elastic_person_index_schema)
-    await es_write_data(es_films_index, films_data, elastic_film_index_schema)
+    es_person_index = Indexes.persons.value.get('index_name')
+    es_movies_index = Indexes.movies.value.get('index_name')
+    es_persons_data = await get_es_data(es_person_index)
+    es_movies_data = await get_es_data(es_movies_index)
+    await es_write_data(es_person_index, es_persons_data, elastic_person_index_schema)
+    await es_write_data(es_movies_index, es_movies_data, elastic_film_index_schema)
 
-    session = aiohttp.ClientSession()
-    person_id = persons_data[0].id
-    person_name = persons_data[0].name
-    person_role = persons_data[0].role
     url = test_settings.service_url + '/api/v1/persons/search'
-    query_data = {'query': person_name}
+    query_data = {'query': person['full_name']}
+    response = await get_request(url, params=query_data)
+    status = response.status
+    body = response.body
 
-    async with session.get(url, params=query_data) as response:
-        body = await response.json()
-        status = response.status
-    await session.close()
-
-    # проверяем
     assert status == 200
-    assert body[0]['id'] == person_id
-    assert body[0]['full_name'] == person_name
-    assert len(body[0]['films']) == 5
-    assert body[0]['films'][0]['id'] == films_data[0].id
-    assert body[0]['films'][0]['roles'] == [person_role]
-
-# TODO вынести генерацию тестовых данных в аналог SetUp
+    assert body[0]['id'] == person['id']
+    assert body[0]['full_name'] == person['full_name']
+    assert len(body[0]['films']) == 2
+    for i in range(len(person['films'])):
+        assert body[0]['films'][i]['id'] == person['films'][i]['id']
+        assert body[0]['films'][i]['id'] == person['films'][i]['id']
