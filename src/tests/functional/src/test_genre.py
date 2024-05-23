@@ -20,7 +20,7 @@ async def test_get_genre_by_id(get_es_data, es_write_data, genre, expected_answe
     es_index = Indexes.genres.value.get('index_name')
     es_genres_data = await get_es_data(es_index)
     await es_write_data(es_index, es_genres_data, elastic_genre_index_schema)
-    url = test_settings.service_url + f'/api/v1/genres/{genre['id']}'
+    url = test_settings.service_url + f"/api/v1/genres/{genre['id']}"
 
     response = await get_request(url)
     status = response.status

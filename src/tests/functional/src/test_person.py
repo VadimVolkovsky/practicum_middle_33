@@ -31,7 +31,7 @@ async def test_person_get_by_id_without_films(get_es_data, es_write_data, person
     es_index = Indexes.persons.value.get('index_name')
     es_persons_data = await get_es_data(es_index)
     await es_write_data(es_index, es_persons_data, elastic_person_index_schema)
-    url = test_settings.service_url + f'/api/v1/persons/{person['id']}'
+    url = test_settings.service_url + f"/api/v1/persons/{person['id']}"
 
     response = await get_request(url)
     status = response.status
@@ -64,7 +64,7 @@ async def test_person_get_by_id_with_films(get_es_data, es_write_data, person, e
     await es_write_data(es_person_index, es_persons_data, elastic_person_index_schema)
     await es_write_data(es_movies_index, es_movies_data, elastic_film_index_schema)
 
-    url = test_settings.service_url + f'/api/v1/persons/{person['id']}'
+    url = test_settings.service_url + f"/api/v1/persons/{person['id']}"
     response = await get_request(url)
     status = response.status
     body = response.body
