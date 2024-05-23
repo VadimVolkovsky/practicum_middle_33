@@ -1,4 +1,5 @@
-import aiohttp
+from http import HTTPStatus
+
 import pytest
 
 from db.elastic import Indexes
@@ -9,8 +10,8 @@ from tests.functional.settings import test_settings
 @pytest.mark.parametrize(
     'film_id, expected_answer',
     [
-        ('64afe9bc-6ea9-4843-8c5a-a76007614b45', {'status': 200, 'count_recommended': 3}),
-        ('0000000', {'status': 404}),
+        ('64afe9bc-6ea9-4843-8c5a-a76007614b45', {'status': HTTPStatus.OK, 'count_recommended': 3}),
+        ('0000000', {'status': HTTPStatus.NOT_FOUND}),
     ]
 )
 @pytest.mark.asyncio
@@ -27,7 +28,7 @@ async def test_get_film_detail(get_es_data, es_write_data, film_id, expected_ans
 
     assert status == expected_answer['status']
 
-    if status == 200:
+    if status == HTTPStatus.OK:
         assert 'recommended_films' in body
         assert len(body['recommended_films']) == expected_answer['count_recommended']
         assert body['recommended_films'][0]['imdb_rating'] >= body['recommended_films'][1]['imdb_rating']
@@ -36,15 +37,15 @@ async def test_get_film_detail(get_es_data, es_write_data, film_id, expected_ans
 @pytest.mark.parametrize(
     'query_data, expected_answer',
     [
-        ({'page_number': 1, 'page_size': 5, 'sort': '-imdb_rating'}, {'status': 200, 'count': 5,
+        ({'page_number': 1, 'page_size': 5, 'sort': '-imdb_rating'}, {'status': HTTPStatus.OK, 'count': 5,
                                                                       'rating_higher': True}),
-        ({'page_number': 2, 'page_size': 5}, {'status': 200, 'count': 5}),
-        ({'page_number': 1}, {'status': 200, 'count': 10}),
-        ({'page_number': 1, 'sort': 'imdb_rating'}, {'status': 200, 'count': 10, 'rating_higher': False}),
-        ({'sort': '-imdb_rating', 'genre': 'cfaec163-d52b-4cc9-a791-35ccfdb7f7e0'}, {'status': 200, 'count': 5,
+        ({'page_number': 2, 'page_size': 5}, {'status': HTTPStatus.OK, 'count': 5}),
+        ({'page_number': 1}, {'status': HTTPStatus.OK, 'count': 10}),
+        ({'page_number': 1, 'sort': 'imdb_rating'}, {'status': HTTPStatus.OK, 'count': 10, 'rating_higher': False}),
+        ({'sort': '-imdb_rating', 'genre': 'cfaec163-d52b-4cc9-a791-35ccfdb7f7e0'}, {'status': HTTPStatus.OK, 'count': 5,
                                                                                      'rating_higher': True}),
-        ({'page_number': '-1'}, {'status': 422}),
-        ({'genre': 'Unknown'}, {'status': 404}),
+        ({'page_number': '-1'}, {'status': HTTPStatus.UNPROCESSABLE_ENTITY}),
+        ({'genre': 'Unknown'}, {'status': HTTPStatus.NOT_FOUND}),
     ]
 )
 @pytest.mark.asyncio
@@ -62,7 +63,7 @@ async def test_get_film_list(get_es_data, es_write_data, expected_answer, query_
 
     assert status == expected_answer['status']
 
-    if status == 200:
+    if status == HTTPStatus.OK:
         assert len(body) == expected_answer['count']
 
     if query_data.get('sort', None):

@@ -1,5 +1,6 @@
 import logging
 import os
+from http import HTTPStatus
 
 import pytest
 
@@ -14,12 +15,12 @@ logger = logging.getLogger(os.path.basename(__file__))
 @pytest.mark.parametrize(
     'query_data, expected_answer',
     [
-        ({'query': 'Repurpose'}, {'status': 200, 'count': 1}),  # TODO обновить тестовые данные
-        ({'query': 'Billy Montes'}, {'status': 200, 'count': 1}),
-        ({'query': 'Melodrama'}, {'status': 200, 'count': 4}),
-        ({'query': 'Detective', 'page_size': 4}, {'status': 200, 'count': 4}),
-        ({'query': ''}, {'status': 200, 'count': 10}),
-        ({'query': 'test_test'}, {'status': 404, 'count': 1}),
+        ({'query': 'Repurpose'}, {'status': HTTPStatus.OK, 'count': 1}),  # TODO обновить тестовые данные
+        ({'query': 'Billy Montes'}, {'status': HTTPStatus.OK, 'count': 1}),
+        ({'query': 'Melodrama'}, {'status': HTTPStatus.OK, 'count': 4}),
+        ({'query': 'Detective', 'page_size': 4}, {'status': HTTPStatus.OK, 'count': 4}),
+        ({'query': ''}, {'status': HTTPStatus.OK, 'count': 10}),
+        ({'query': 'test_test'}, {'status': HTTPStatus.NOT_FOUND, 'count': 1}),
     ]
 )
 @pytest.mark.asyncio
