@@ -5,6 +5,8 @@ from pydantic import BaseModel, Field
 
 from db.elastic import Indexes
 from services.person import PersonService, get_person_service
+from api.v1.paginate_params import PaginatedParams, get_paginated_params
+
 
 router = APIRouter()
 
@@ -42,8 +44,7 @@ class PersonFilmsSerializer(BaseModel):
             В ответе будет выведен список персонажей"""
             )
 async def persons_search(query: str,
-                         page_number: int = Query(1, gt=0),
-                         page_size: int = Query(100, gt=0),
+                         paginated: PaginatedParams = Depends(get_paginated_params),
                          person_service: PersonService = Depends(get_person_service)) -> list[PersonSerializer]:
     '''Метод для поиска подходящих по имени персонажей
     :param query: строка, по которой производится полнотекстовый поиск
@@ -51,7 +52,8 @@ async def persons_search(query: str,
     :param page_size: размер станицы
     :param sort: поле, по которому ссортируется список
     :param person_service: '''
-
+    page_number = paginated.get_page_number
+    page_size = paginated.get_page_size
     start_index = (page_number - 1) * page_size
     persons_data = await person_service.get_list_persons(start_index, page_size, query=query)
 
