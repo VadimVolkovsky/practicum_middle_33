@@ -116,7 +116,6 @@ async def _get_query_body(start_index: int,
         #     ],
         # }
 
-
     # if query:  # TODO нужно доработать. Возвращает код 500 для эндпоинта /{person_id}/film
     #     if not body.get('query', None):
     #         body['query'] = {}
