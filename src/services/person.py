@@ -1,5 +1,6 @@
 from functools import lru_cache
 
+import backoff
 from elasticsearch import AsyncElasticsearch, NotFoundError
 from fastapi import Depends
 from redis.asyncio import Redis
@@ -9,6 +10,7 @@ from db.elastic import get_elastic
 from db.redis import get_redis
 from models.models import Film
 from models.models import Person
+from services.exceptions import CONNECTION_EXCEPTIONS
 from services.proto_service import ProtoService
 from services.utils import _get_query_body
 
@@ -25,6 +27,7 @@ class PersonService(ProtoService):
         films_data = await self.get_person_films_from_elastic(start_index=1, page_size=100, person=person)
         return films_data
 
+    @backoff.on_exception(backoff.expo, CONNECTION_EXCEPTIONS)
     async def get_person_films_from_elastic(self,
                                             start_index: int,
                                             page_size: int,
@@ -97,6 +100,7 @@ class PersonService(ProtoService):
             await self._put_objs_to_cache(parameters, persons_data)
         return persons_data
 
+    @backoff.on_exception(backoff.expo, CONNECTION_EXCEPTIONS)
     async def _get_list_persons_from_elastic(self,
                                              start_index: int,
                                              page_size: int,

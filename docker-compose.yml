@@ -19,7 +19,7 @@ services:
     depends_on:
       - redis
       - elasticsearch
-    container_name: 'sprint_4_api'
+    container_name: 'middle_practicum_api'
 
   redis:
     image: redis:latest
@@ -31,7 +31,7 @@ services:
       - REDIS_PORT=6379
     ports:
       - 0:6379
-    container_name: 'sprint_4_redis'
+    container_name: 'middle_practicum_redis'
 
   elasticsearch:
     image: elasticsearch:8.13.0
@@ -48,7 +48,8 @@ services:
       - ES_JAVA_OPTS=-Xms200m -Xmx200m
     ports:
       - 0:9200
-    container_name: 'sprint_4_elasticsearch'
+    container_name: 'middle_practicum_elasticsearch'
+
 
   nginx:
     image: nginx:1.19.2
@@ -59,4 +60,4 @@ services:
       - api
     ports:
       - "80:80"
-    container_name: 'sprint_4_nginx'
+    container_name: 'middle_practicum_nginx'
