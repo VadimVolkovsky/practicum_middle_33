@@ -1,10 +1,8 @@
-import logging
-import os
 import random
 from datetime import datetime
 from http import HTTPStatus
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from constants import ListDictType, OptStrType

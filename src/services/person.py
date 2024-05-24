@@ -8,7 +8,7 @@ from redis.asyncio import Redis
 from constants import OptStrType
 from db.elastic import get_elastic
 from db.redis import get_redis
-from models.models import Film
+from models.models import Film, BaseNameModel
 from models.models import Person
 from services.exceptions import CONNECTION_EXCEPTIONS
 from services.proto_service import ProtoService
@@ -92,7 +92,7 @@ class PersonService(ProtoService):
         persons_data = await self._get_objs_from_cache(parameters, model)
 
         if not persons_data:
-            persons_data = await self._get_list_persons_from_elastic(start_index, page_size, sort, query)
+            persons_data = await self._get_list_persons_from_elastic(start_index, page_size, sort, query, model)
 
             if not persons_data:
                 return None
@@ -105,9 +105,10 @@ class PersonService(ProtoService):
                                              start_index: int,
                                              page_size: int,
                                              sort: OptStrType = None,
-                                             query: OptStrType = None) -> list[Person] | None:
+                                             query: OptStrType = None,
+                                             model: BaseNameModel | None = None) -> list[Person] | None:
         """"""
-        query_body = await _get_query_body(start_index, page_size, sort, query=query)
+        query_body = await _get_query_body(start_index, page_size, sort, query=query, model=model)
 
         try:
             search = await self.elastic.search(index='persons', body=query_body)
