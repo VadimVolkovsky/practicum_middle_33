@@ -1,3 +1,6 @@
+import logging
+import os
+import random
 from datetime import datetime
 from http import HTTPStatus
 
@@ -12,8 +15,6 @@ from api.v1.paginate_params import PaginatedParams, get_paginated_params
 
 
 router = APIRouter()
-logger = logging.getLogger(os.path.basename(__file__))
-logger.setLevel(logging.INFO)
 
 
 class FilmListSerializer(BaseModel):
@@ -55,8 +56,8 @@ async def film_search(query: str,
     :param page_number: номер страницы
     :param page_size: размер станицы
     :param sort: поле, по которому ссортируется список'''
-    page_number = paginated.get_page_number
-    page_size = paginated.get_page_size
+    page_number = paginated.get_page_number()
+    page_size = paginated.get_page_size()
     start_index = (page_number - 1) * page_size
     index_model = Indexes.movies.value.get('index_model')
     sort = await validation_index_model_field(sort, index_model)
@@ -125,8 +126,8 @@ async def film_list(paginated: PaginatedParams = Depends(get_paginated_params),
     """
     index_model = Indexes.movies.value.get('index_model')
     sort = await validation_index_model_field(sort, index_model)
-    page_number = paginated.get_page_number
-    page_size = paginated.get_page_size
+    page_number = paginated.get_page_number()
+    page_size = paginated.get_page_size()
     start_index = (page_number - 1) * page_size
 
     film_list = await film_service.get_list_film(start_index, page_size, sort, genre)
