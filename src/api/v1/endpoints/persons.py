@@ -52,8 +52,8 @@ async def persons_search(query: str,
     :param page_size: размер станицы
     :param sort: поле, по которому ссортируется список
     :param person_service: '''
-    page_number = paginated.get_page_number
-    page_size = paginated.get_page_size
+    page_number = paginated.get_page_number()
+    page_size = paginated.get_page_size()
     start_index = (page_number - 1) * page_size
     persons_data = await person_service.get_list_persons(start_index, page_size, query=query)
 
