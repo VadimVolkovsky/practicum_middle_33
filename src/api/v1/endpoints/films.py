@@ -11,11 +11,10 @@ from constants import ListDictType, OptStrType
 from db.elastic import Indexes
 from services.film import FilmService, get_film_service
 from services.utils import validation_index_model_field
+from api.v1.paginate_params import PaginatedParams, get_paginated_params
 
 
 router = APIRouter()
-logger = logging.getLogger(os.path.basename(__file__))
-logger.setLevel(logging.INFO)
 
 
 class FilmListSerializer(BaseModel):
@@ -49,8 +48,7 @@ class FilmSerializer(FilmListSerializer):
     В ответе будет выведен список фильмов с id, названием и рейтингом.
     """)
 async def film_search(query: str,
-                      page_number: int = Query(1, gt=0),
-                      page_size: int = Query(100, gt=0),
+                      paginated: PaginatedParams = Depends(get_paginated_params),
                       sort: OptStrType = None,
                       film_service: FilmService = Depends(get_film_service)) -> list[FilmListSerializer]:
     '''Метод для поиска подходящих по названию фильмов
@@ -58,7 +56,8 @@ async def film_search(query: str,
     :param page_number: номер страницы
     :param page_size: размер станицы
     :param sort: поле, по которому ссортируется список'''
-
+    page_number = paginated.get_page_number()
+    page_size = paginated.get_page_size()
     start_index = (page_number - 1) * page_size
     index_model = Indexes.movies.value.get('index_model')
     sort = await validation_index_model_field(sort, index_model)
@@ -113,8 +112,7 @@ async def film_details(film_id: str, film_service: FilmService = Depends(get_fil
                 В случае отсутствия подходяших фильмов - возвращает код ответа 404
                 """
             )
-async def film_list(page_number: int = Query(1, gt=0),
-                    page_size: int = Query(100, gt=0),
+async def film_list(paginated: PaginatedParams = Depends(get_paginated_params),
                     sort: OptStrType = None,
                     genre: OptStrType = None,
                     film_service: FilmService = Depends(get_film_service)) -> list[FilmListSerializer]:
@@ -128,6 +126,8 @@ async def film_list(page_number: int = Query(1, gt=0),
     """
     index_model = Indexes.movies.value.get('index_model')
     sort = await validation_index_model_field(sort, index_model)
+    page_number = paginated.get_page_number()
+    page_size = paginated.get_page_size()
     start_index = (page_number - 1) * page_size
 
     film_list = await film_service.get_list_film(start_index, page_size, sort, genre)
