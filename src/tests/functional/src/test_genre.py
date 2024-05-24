@@ -33,4 +33,3 @@ async def test_get_genre_by_id(get_es_data, es_write_data, genre, expected_answe
     if status == HTTPStatus.OK:
         assert body['id'] == genre['id']
         assert body['name'] == genre['name']
-

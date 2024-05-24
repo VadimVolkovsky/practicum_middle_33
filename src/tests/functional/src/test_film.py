@@ -42,8 +42,8 @@ async def test_get_film_detail(get_es_data, es_write_data, film_id, expected_ans
         ({'page_number': 2, 'page_size': 5}, {'status': HTTPStatus.OK, 'count': 5}),
         ({'page_number': 1}, {'status': HTTPStatus.OK, 'count': 10}),
         ({'page_number': 1, 'sort': 'imdb_rating'}, {'status': HTTPStatus.OK, 'count': 10, 'rating_higher': False}),
-        ({'sort': '-imdb_rating', 'genre': 'cfaec163-d52b-4cc9-a791-35ccfdb7f7e0'}, {'status': HTTPStatus.OK, 'count': 5,
-                                                                                     'rating_higher': True}),
+        ({'sort': '-imdb_rating', 'genre': 'cfaec163-d52b-4cc9-a791-35ccfdb7f7e0'},
+         {'status': HTTPStatus.OK, 'count': 5, 'rating_higher': True}),
         ({'page_number': '-1'}, {'status': HTTPStatus.UNPROCESSABLE_ENTITY}),
         ({'genre': 'Unknown'}, {'status': HTTPStatus.NOT_FOUND}),
     ]

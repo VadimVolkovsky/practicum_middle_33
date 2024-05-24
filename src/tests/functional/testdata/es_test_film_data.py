@@ -13,7 +13,8 @@ es_film_data = [
             }
         ],
         "title": "Deploy Strategic Mindshare",
-        "description": "Identify factor pay home office especially son line. Action activity too tonight center drop seat.",
+        "description": "Identify factor pay home office especially son line. "
+                       "Action activity too tonight center drop seat.",
         "directors": [
             {
                 "id": "5bd7f73e-6648-4a4c-926a-13ec037c3fdf",
@@ -91,7 +92,9 @@ es_film_data = [
             }
         ],
         "title": "Embrace Clicks-And-Mortar Deliverables",
-        "description": "Building sing notice people stuff never occur. Right process ok anything join whole station old. Necessary degree remain be prevent son.",
+        "description": "Building sing notice people stuff never occur. "
+                       "Right process ok anything join whole station old. "
+                       "Necessary degree remain be prevent son.",
         "directors": [
             {
                 "id": "65fb0eb5-d686-4261-95c7-c82562c2c7fb",
@@ -165,7 +168,10 @@ es_film_data = [
             }
         ],
         "title": "Exploit End-To-End Technologies",
-        "description": "Heart partner subject perform realize. Economy remember likely.\nOpportunity indicate analysis door.\nKnowledge state court only ball one. Evidence few set image to. By firm believe alone series.",
+        "description": "Heart partner subject perform realize. Economy remember likely. "
+                       "Opportunity indicate analysis door. "
+                       "nKnowledge state court only ball one. "
+                       "Evidence few set image to. By firm believe alone series.",
         "directors": [
             {
                 "id": "9a6e3ff3-2051-432e-9569-f9083384584c",
@@ -269,7 +275,10 @@ es_film_data = [
             }
         ],
         "title": "Implement Value-Added Users",
-        "description": "One available tend per adult stand decision. System fill like or leg report statement. Without wife any.\nBreak laugh until staff open response. High include too mother. Know eat realize.",
+        "description": "One available tend per adult stand decision. "
+                       "System fill like or leg report statement. "
+                       "Without wife any. Break laugh until staff open response. "
+                       "High include too mother. Know eat realize.",
         "directors": [
             {
                 "id": "5bd7f73e-6648-4a4c-926a-13ec037c3fdf",
@@ -331,7 +340,8 @@ es_film_data = [
             }
         ],
         "title": "Exploit Ubiquitous E-Business",
-        "description": "Defense air inside game wish.\nWeight style city security shoulder design strong officer. Training parent face call then individual. Care somebody next list present point.",
+        "description": "Defense air inside game wish. Weight style city security shoulder design strong officer. "
+                       "Training parent face call then individual. Care somebody next list present point.",
         "directors": [
             {
                 "id": "5239938a-d8a6-48cf-8002-dc156636033f",
@@ -401,7 +411,8 @@ es_film_data = [
             }
         ],
         "title": "Extend One-To-One Portals",
-        "description": "Either course concern however fact score nor. Interest decision turn.\nFast bed there dog challenge same service everything. Serious bad skill election.",
+        "description": "Either course concern however fact score nor. Interest decision turn. "
+                       "Fast bed there dog challenge same service everything. Serious bad skill election.",
         "directors": [
             {
                 "id": "1088bd88-fcf2-4d55-90a9-b11010c23f1e",
@@ -483,7 +494,8 @@ es_film_data = [
             }
         ],
         "title": "Integrate Magnetic Convergence",
-        "description": "Price science tell tonight pressure factor size. Begin pay campaign ground interview perhaps area wife.",
+        "description": "Price science tell tonight pressure factor size. "
+                       "Begin pay campaign ground interview perhaps area wife.",
         "directors": [
             {
                 "id": "6a294fdb-521d-411f-930b-df2a2dc42460",
@@ -615,7 +627,8 @@ es_film_data = [
             }
         ],
         "title": "Grow User-Centric E-Commerce",
-        "description": "Record responsibility investment your. Reality nothing prepare. Take laugh side computer detail. Bill best too actually.",
+        "description": "Record responsibility investment your. Reality nothing prepare. "
+                       "Take laugh side computer detail. Bill best too actually.",
         "directors": [
             {
                 "id": "4d5b0044-9d2c-4d65-95b2-b670a5b43c58",
