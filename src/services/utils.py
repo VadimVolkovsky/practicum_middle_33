@@ -2,7 +2,7 @@ import logging
 import os
 
 from constants import OptStrType
-
+from models.models import BaseNameModel, Person
 
 logger = logging.getLogger(os.path.basename(__file__))
 
@@ -12,7 +12,8 @@ async def _get_query_body(start_index: int,
                           sort: OptStrType = None,
                           genre: OptStrType = None,
                           query: OptStrType = None,
-                          person_id: OptStrType = None) -> dict:
+                          person_id: OptStrType = None,
+                          model: BaseNameModel | None = None) -> dict:
     '''функция для составления запроса поиска в elassticsearch
     :param start_index: номер записи с которой начинается выдача записей с ES
     :param page_size: размер станицы
@@ -116,36 +117,8 @@ async def _get_query_body(start_index: int,
         #     ],
         # }
 
-    # if query:  # TODO нужно доработать. Возвращает код 500 для эндпоинта /{person_id}/film
-    #     if not body.get('query', None):
-    #         body['query'] = {}
-    #
-    #     body['query']['bool'] = {
-    #         "should": [
-    #             *[
-    #                 {
-    #                     "nested": {
-    #                         "path": f"{field}",
-    #                         "query": {
-    #                             "multi_match": {
-    #                                 "query": query,
-    #                                 "fields": [f"{field}.name"]
-    #                             }
-    #                         }
-    #                     }
-    #                 }
-    #                 for field in ["directors", "actors", "writers", 'genre']
-    #             ],
-    #             {
-    #                 "multi_match": {
-    #                     "query": query,
-    #                     "fields": ['title', 'name', 'description']
-    #                 }
-    #             }
-    #         ]
-    #     }
 
-    if query:
+    if query and model is Person:
         if not body.get('query', None):
             body['query'] = {}
 
@@ -153,6 +126,35 @@ async def _get_query_body(start_index: int,
             'query': query,
             'fields': ['title', 'name', 'actors.name', 'writers.name', 'directors.name', 'genre.name', 'description'],
             'fuzziness': 'AUTO'
+        }
+
+    elif query:
+        if not body.get('query', None):
+            body['query'] = {}
+
+        body['query']['bool'] = {
+            "should": [
+                *[
+                    {
+                        "nested": {
+                            "path": f"{field}",
+                            "query": {
+                                "multi_match": {
+                                    "query": query,
+                                    "fields": [f"{field}.name"]
+                                }
+                            }
+                        }
+                    }
+                    for field in ["directors", "actors", "writers", 'genre']
+                ],
+                {
+                    "multi_match": {
+                        "query": query,
+                        "fields": ['title', 'name', 'description']
+                    }
+                }
+            ]
         }
 
     return body
