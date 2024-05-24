@@ -117,7 +117,6 @@ async def _get_query_body(start_index: int,
         #     ],
         # }
 
-
     if query and model is Person:
         if not body.get('query', None):
             body['query'] = {}
