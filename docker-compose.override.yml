@@ -45,7 +45,8 @@ services:
       timeout: 10s
       retries: 50
     volumes:
-      - ./src/db/elasticsearch/data/:/usr/share/elasticsearch/data
+##      - ./src/db/elasticsearch/data/:/usr/share/elasticsearch/data
+      - esdata01:/usr/share/elasticsearch/data
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
@@ -58,6 +59,9 @@ services:
 
   nginx:
     entrypoint: ["echo", "Service nginx disabled in dev mode"]
+
+volumes:
+  esdata01:
 
 networks:
   default:
